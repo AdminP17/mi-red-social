@@ -1,0 +1,26 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-redsocial-dev-14046-authRole",
+      "UnauthRoleArn": "arn:aws:iam::704555301407:role/amplify-redsocial-dev-14046-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::704555301407:role/amplify-redsocial-dev-14046-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-redsocial-dev-14046-deployment",
+      "UnauthRoleName": "amplify-redsocial-dev-14046-unauthRole",
+      "StackName": "amplify-redsocial-dev-14046",
+      "StackId": "arn:aws:cloudformation:us-east-1:704555301407:stack/amplify-redsocial-dev-14046/c8ff6430-c8e2-11f0-ae49-0affca1a2ca1",
+      "AmplifyAppId": "d2yl7aq5xu42rj"
+    },
+    "categories": {
+      "auth": {
+        "redsocial6986d1b3": {}
+      },
+      "api": {
+        "redsocial": {}
+      },
+      "storage": {
+        "images": {}
+      }
+    }
+  }
+}

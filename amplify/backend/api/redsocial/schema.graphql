@@ -1,0 +1,71 @@
+type UserProfile @model @auth(rules: [
+  { allow: owner },
+  { allow: public, operations: [read] }
+]) {
+  id: ID!
+  username: String
+  bio: String
+  avatar: String
+
+  # Relaciones inversas obligatorias
+  posts: [Post] @hasMany(indexName: "byUser", fields: ["id"])
+  comments: [Comment] @hasMany(indexName: "byUser", fields: ["id"])
+  likes: [Like] @hasMany(indexName: "byUser", fields: ["id"])
+
+  followers: [Follow] @hasMany(indexName: "byFollowed", fields: ["id"])
+  following: [Follow] @hasMany(indexName: "byFollower", fields: ["id"])
+}
+
+type Post @model @auth(rules: [
+  { allow: owner },
+  { allow: public, operations: [read] }
+]) {
+  id: ID!
+  userID: ID @index(name: "byUser")
+  content: String
+  media: [String]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+
+  user: UserProfile @belongsTo(fields: ["userID"])
+  comments: [Comment] @hasMany(indexName: "byPost", fields: ["id"])
+  likes: [Like] @hasMany(indexName: "byPost", fields: ["id"])
+}
+
+type Comment @model @auth(rules: [
+  { allow: owner },
+  { allow: public, operations: [read] }
+]) {
+  id: ID!
+  postID: ID @index(name: "byPost")
+  userID: ID @index(name: "byUser")
+  content: String
+  createdAt: AWSDateTime
+
+  post: Post @belongsTo(fields: ["postID"])
+  user: UserProfile @belongsTo(fields: ["userID"])
+}
+
+type Like @model @auth(rules: [
+  { allow: owner },
+  { allow: public, operations: [read] }
+]) {
+  id: ID!
+  postID: ID @index(name: "byPost")
+  userID: ID @index(name: "byUser")
+
+  post: Post @belongsTo(fields: ["postID"])
+  user: UserProfile @belongsTo(fields: ["userID"])
+}
+
+type Follow @model @auth(rules: [
+  { allow: owner },
+  { allow: public, operations: [read] }
+]) {
+  id: ID!
+  followerID: ID @index(name: "byFollower")
+  followedID: ID @index(name: "byFollowed")
+
+  follower: UserProfile @belongsTo(fields: ["followerID"])
+  followed: UserProfile @belongsTo(fields: ["followedID"])
+}

@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "redsocial",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authredsocial6986d1b3",
+      "Outputs.UserPoolId"
+    ]
+  }
+}
