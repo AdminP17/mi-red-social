@@ -124,16 +124,6 @@ export const createPost = /* GraphQL */ `
       media
       createdAt
       updatedAt
-      user {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       comments {
         nextToken
         __typename
@@ -159,16 +149,6 @@ export const updatePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
-      user {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       comments {
         nextToken
         __typename
@@ -194,16 +174,6 @@ export const deletePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
-      user {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       comments {
         nextToken
         __typename
@@ -405,26 +375,6 @@ export const createFollow = /* GraphQL */ `
       id
       followerID
       followedID
-      follower {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
-      followed {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       createdAt
       updatedAt
       owner
@@ -441,26 +391,6 @@ export const updateFollow = /* GraphQL */ `
       id
       followerID
       followedID
-      follower {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
-      followed {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       createdAt
       updatedAt
       owner
@@ -477,26 +407,6 @@ export const deleteFollow = /* GraphQL */ `
       id
       followerID
       followedID
-      follower {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
-      followed {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       createdAt
       updatedAt
       owner
