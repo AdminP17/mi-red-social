@@ -327,16 +327,6 @@ export const createLike = /* GraphQL */ `
         owner
         __typename
       }
-      user {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
       createdAt
       updatedAt
       owner
@@ -394,16 +384,6 @@ export const deleteLike = /* GraphQL */ `
         userID
         content
         media
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
-      user {
-        id
-        username
-        bio
-        avatar
         createdAt
         updatedAt
         owner
