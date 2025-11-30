@@ -19,7 +19,8 @@ type UserProfile @model @auth(rules: [
 
 type Post @model @auth(rules: [
   { allow: owner },
-  { allow: public, operations: [read] }
+  { allow: public, operations: [read] },
+  { allow: private, operations: [read] }
 ]) {
   id: ID!
   userID: ID @index(name: "byUser")
@@ -35,7 +36,8 @@ type Post @model @auth(rules: [
 
 type Comment @model @auth(rules: [
   { allow: owner },
-  { allow: public, operations: [read] }
+  { allow: public, operations: [read] },
+  { allow: private, operations: [read] }
 ]) {
   id: ID!
   postID: ID @index(name: "byPost")
@@ -49,7 +51,8 @@ type Comment @model @auth(rules: [
 
 type Like @model @auth(rules: [
   { allow: owner },
-  { allow: public, operations: [read] }
+  { allow: public, operations: [read] },
+  { allow: private, operations: [read] }
 ]) {
   id: ID!
   postID: ID @index(name: "byPost")
@@ -61,7 +64,8 @@ type Like @model @auth(rules: [
 
 type Follow @model @auth(rules: [
   { allow: owner },
-  { allow: public, operations: [read] }
+  { allow: public, operations: [read] },
+  { allow: private, operations: [read] }
 ]) {
   id: ID!
   followerID: ID @index(name: "byFollower")

@@ -1,5 +1,5 @@
 /* eslint-disable */
-// THIS FILE IS MANUALLY FIXED TO REMOVE RELATIONS THAT BREAK APPSYNC
+// this is an auto generated file. This will be overwritten
 
 export const createUserProfile = /* GraphQL */ `
   mutation CreateUserProfile(
@@ -11,12 +11,33 @@ export const createUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      posts {
+        nextToken
+        __typename
+      }
+      comments {
+        nextToken
+        __typename
+      }
+      likes {
+        nextToken
+        __typename
+      }
+      followers {
+        nextToken
+        __typename
+      }
+      following {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
+      owner
+      __typename
     }
   }
 `;
-
 export const updateUserProfile = /* GraphQL */ `
   mutation UpdateUserProfile(
     $input: UpdateUserProfileInput!
@@ -27,12 +48,33 @@ export const updateUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      posts {
+        nextToken
+        __typename
+      }
+      comments {
+        nextToken
+        __typename
+      }
+      likes {
+        nextToken
+        __typename
+      }
+      followers {
+        nextToken
+        __typename
+      }
+      following {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
+      owner
+      __typename
     }
   }
 `;
-
 export const deleteUserProfile = /* GraphQL */ `
   mutation DeleteUserProfile(
     $input: DeleteUserProfileInput!
@@ -40,12 +82,36 @@ export const deleteUserProfile = /* GraphQL */ `
   ) {
     deleteUserProfile(input: $input, condition: $condition) {
       id
+      username
+      bio
+      avatar
+      posts {
+        nextToken
+        __typename
+      }
+      comments {
+        nextToken
+        __typename
+      }
+      likes {
+        nextToken
+        __typename
+      }
+      followers {
+        nextToken
+        __typename
+      }
+      following {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
     }
   }
 `;
-
-
-// POSTS
 export const createPost = /* GraphQL */ `
   mutation CreatePost(
     $input: CreatePostInput!
@@ -58,10 +124,29 @@ export const createPost = /* GraphQL */ `
       media
       createdAt
       updatedAt
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      comments {
+        nextToken
+        __typename
+      }
+      likes {
+        nextToken
+        __typename
+      }
+      owner
+      __typename
     }
   }
 `;
-
 export const updatePost = /* GraphQL */ `
   mutation UpdatePost(
     $input: UpdatePostInput!
@@ -74,10 +159,29 @@ export const updatePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      comments {
+        nextToken
+        __typename
+      }
+      likes {
+        nextToken
+        __typename
+      }
+      owner
+      __typename
     }
   }
 `;
-
 export const deletePost = /* GraphQL */ `
   mutation DeletePost(
     $input: DeletePostInput!
@@ -85,12 +189,34 @@ export const deletePost = /* GraphQL */ `
   ) {
     deletePost(input: $input, condition: $condition) {
       id
+      userID
+      content
+      media
+      createdAt
+      updatedAt
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      comments {
+        nextToken
+        __typename
+      }
+      likes {
+        nextToken
+        __typename
+      }
+      owner
+      __typename
     }
   }
 `;
-
-
-// COMMENTS
 export const createComment = /* GraphQL */ `
   mutation CreateComment(
     $input: CreateCommentInput!
@@ -102,10 +228,59 @@ export const createComment = /* GraphQL */ `
       userID
       content
       createdAt
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      updatedAt
+      owner
+      __typename
     }
   }
 `;
-
+export const updateComment = /* GraphQL */ `
+  mutation UpdateComment(
+    $input: UpdateCommentInput!
+    $condition: ModelCommentConditionInput
+  ) {
+    updateComment(input: $input, condition: $condition) {
+      id
+      postID
+      userID
+      content
+      createdAt
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
 export const deleteComment = /* GraphQL */ `
   mutation DeleteComment(
     $input: DeleteCommentInput!
@@ -113,12 +288,26 @@ export const deleteComment = /* GraphQL */ `
   ) {
     deleteComment(input: $input, condition: $condition) {
       id
+      postID
+      userID
+      content
+      createdAt
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      updatedAt
+      owner
+      __typename
     }
   }
 `;
-
-
-// LIKES
 export const createLike = /* GraphQL */ `
   mutation CreateLike(
     $input: CreateLikeInput!
@@ -128,10 +317,69 @@ export const createLike = /* GraphQL */ `
       id
       postID
       userID
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
     }
   }
 `;
-
+export const updateLike = /* GraphQL */ `
+  mutation UpdateLike(
+    $input: UpdateLikeInput!
+    $condition: ModelLikeConditionInput
+  ) {
+    updateLike(input: $input, condition: $condition) {
+      id
+      postID
+      userID
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
 export const deleteLike = /* GraphQL */ `
   mutation DeleteLike(
     $input: DeleteLikeInput!
@@ -139,12 +387,35 @@ export const deleteLike = /* GraphQL */ `
   ) {
     deleteLike(input: $input, condition: $condition) {
       id
+      postID
+      userID
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      user {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
     }
   }
 `;
-
-
-// FOLLOWS
 export const createFollow = /* GraphQL */ `
   mutation CreateFollow(
     $input: CreateFollowInput!
@@ -154,10 +425,69 @@ export const createFollow = /* GraphQL */ `
       id
       followerID
       followedID
+      follower {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
     }
   }
 `;
-
+export const updateFollow = /* GraphQL */ `
+  mutation UpdateFollow(
+    $input: UpdateFollowInput!
+    $condition: ModelFollowConditionInput
+  ) {
+    updateFollow(input: $input, condition: $condition) {
+      id
+      followerID
+      followedID
+      follower {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
 export const deleteFollow = /* GraphQL */ `
   mutation DeleteFollow(
     $input: DeleteFollowInput!
@@ -165,6 +495,32 @@ export const deleteFollow = /* GraphQL */ `
   ) {
     deleteFollow(input: $input, condition: $condition) {
       id
+      followerID
+      followedID
+      follower {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
     }
   }
 `;

@@ -103,6 +103,12 @@ export const listPosts = /* GraphQL */ `
         media
         createdAt
         updatedAt
+        updatedAt
+        user {
+          id
+          username
+          avatar
+        }
         owner
         __typename
       }
@@ -133,6 +139,12 @@ export const postsByUserID = /* GraphQL */ `
         media
         createdAt
         updatedAt
+        updatedAt
+        user {
+          id
+          username
+          avatar
+        }
         owner
         __typename
       }
@@ -189,6 +201,12 @@ export const listComments = /* GraphQL */ `
         content
         createdAt
         updatedAt
+        updatedAt
+        user {
+          id
+          username
+          avatar
+        }
         owner
         __typename
       }
@@ -219,6 +237,12 @@ export const commentsByPostID = /* GraphQL */ `
         content
         createdAt
         updatedAt
+        updatedAt
+        user {
+          id
+          username
+          avatar
+        }
         owner
         __typename
       }
