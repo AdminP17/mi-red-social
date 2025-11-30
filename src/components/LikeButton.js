@@ -12,21 +12,49 @@ export default function LikeButton({ postID }) {
   const [likeId, setLikeId] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Custom query to fetch user with likes
+  const listLikesWithUser = /* GraphQL */ `
+    query ListLikes(
+      $filter: ModelLikeFilterInput
+      $limit: Int
+      $nextToken: String
+    ) {
+      listLikes(filter: $filter, limit: $limit, nextToken: $nextToken) {
+        items {
+          id
+          postID
+          userID
+          user {
+            id
+          }
+          createdAt
+          updatedAt
+          owner
+        }
+        nextToken
+      }
+    }
+  `;
+
   const loadLikes = useCallback(async () => {
     try {
       const user = await getCurrentUser();
 
       const result = await client.graphql({
-        query: listLikes,
+        query: listLikesWithUser,
         variables: {
           filter: { postID: { eq: postID } }
         }
       });
 
-      const likes = result.data.listLikes.items;
-      setLikesCount(likes.length);
+      const allLikes = result.data.listLikes.items;
 
-      const existing = likes.find(l => l.userID === user.userId); // Check by userID not owner
+      // Filter out orphaned likes
+      const validLikes = allLikes.filter(l => l.user !== null);
+
+      setLikesCount(validLikes.length);
+
+      const existing = validLikes.find(l => l.userID === user.userId);
 
       if (existing) {
         setLiked(true);

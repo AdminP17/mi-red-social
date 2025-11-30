@@ -28,9 +28,13 @@ export default function Comments({ postId }) {
 
       // Sort by date asc
       const items = res.data.listComments.items || [];
-      items.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-      setComments(items);
+      // Filter out orphaned comments
+      const validComments = items.filter(c => c.user !== null);
+
+      validComments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+      setComments(validComments);
     } catch (err) {
       console.error("Error loading comments:", err);
     }

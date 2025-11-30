@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/api";
 import { getUrl } from "@aws-amplify/storage";
-import { listPosts, followsByFollowerID, listUserProfiles } from "../graphql/queries";
-import { deletePost } from "../graphql/mutations"; // Import deletePost
+import { listPosts, followsByFollowerID } from "../graphql/queries";
+import { deletePost } from "../graphql/mutations";
 import { onCreatePost } from "../graphql/subscriptions";
 import { getCurrentUser } from "aws-amplify/auth";
 import LikeButton from "./LikeButton";
 import Comments from "./Comments";
-import FollowButton from "./FollowButton"; // Import FollowButton
+import FollowButton from "./FollowButton";
 
 const client = generateClient();
 
-export default function Feed({ reload }) {
+export default function Feed({ reload, onUserClick }) {
   const [posts, setPosts] = useState([]);
-  const [viewMode, setViewMode] = useState("all"); // Default to "all" for better initial experience
+  const [viewMode, setViewMode] = useState("all");
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
 
@@ -30,11 +30,8 @@ export default function Feed({ reload }) {
       });
       let allPosts = res.data.listPosts.items;
 
-
-
       // 2. Filter if in "following" mode
       if (viewMode === "following") {
-        // Fetch who I follow
         const followRes = await client.graphql({
           query: followsByFollowerID,
           variables: { followerID: user.userId }
@@ -46,9 +43,13 @@ export default function Feed({ reload }) {
         allPosts = allPosts.filter(p => followingIds.has(p.userID));
       }
 
-      // 3. Get URLs
+      // 3. Get URLs & Filter Orphaned Posts
       const postsWithUrls = await Promise.all(
         allPosts.map(async (post) => {
+          // Filter out orphaned posts
+          if (!post.user) return null;
+
+          // Post Image
           if (post.media && post.media.length > 0) {
             const fileKey = post.media[0];
             try {
@@ -58,11 +59,23 @@ export default function Feed({ reload }) {
               console.warn("Error loading image URL:", e);
             }
           }
+
+          // User Avatar
+          if (post.user && post.user.avatar) {
+            try {
+              const avatarUrlResult = await getUrl({ key: post.user.avatar });
+              post.user.avatarUrl = avatarUrlResult.url.toString();
+            } catch (e) {
+              console.warn("Error loading avatar URL:", e);
+            }
+          }
+
           return post;
         })
       );
 
-      setPosts(postsWithUrls);
+      setPosts(postsWithUrls.filter(p => p !== null));
+
     } catch (err) {
       console.error("Error loading posts:", err);
     } finally {
@@ -79,7 +92,6 @@ export default function Feed({ reload }) {
         variables: { input: { id: postId } }
       });
 
-      // Remove from local state
       setPosts(prev => prev.filter(p => p.id !== postId));
     } catch (err) {
       console.error("Error deleting post:", err);
@@ -91,7 +103,7 @@ export default function Feed({ reload }) {
     loadPosts();
   }, [reload, viewMode]);
 
-  // Subscription (simplified)
+  // Subscription
   useEffect(() => {
     const subscription = client
       .graphql({ query: onCreatePost })
@@ -139,12 +151,24 @@ export default function Feed({ reload }) {
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg shadow-inner">
-                  {p.user?.username?.charAt(0).toUpperCase() || "?"}
+                <div
+                  onClick={() => onUserClick && onUserClick(p.user)}
+                  className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg shadow-inner cursor-pointer hover:opacity-80 transition"
+                >
+                  {p.user?.avatarUrl ? (
+                    <img src={p.user.avatarUrl} alt={p.user.username} className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    p.user?.username?.charAt(0).toUpperCase() || "?"
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <p className="font-bold text-gray-900">@{p.user?.username || "Usuario"}</p>
+                    <p
+                      onClick={() => onUserClick && onUserClick(p.user)}
+                      className="font-bold text-gray-900 cursor-pointer hover:underline"
+                    >
+                      @{p.user?.username || "Usuario"}
+                    </p>
                     {currentUserId && p.userID !== currentUserId && (
                       <FollowButton targetUserId={p.userID} />
                     )}
