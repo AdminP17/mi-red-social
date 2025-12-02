@@ -31,6 +31,18 @@ export const onCreateUserProfile = /* GraphQL */ `
         nextToken
         __typename
       }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -65,6 +77,18 @@ export const onUpdateUserProfile = /* GraphQL */ `
         __typename
       }
       following {
+        nextToken
+        __typename
+      }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
         nextToken
         __typename
       }
@@ -105,6 +129,330 @@ export const onDeleteUserProfile = /* GraphQL */ `
         nextToken
         __typename
       }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
+        nextToken
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onCreateNotification = /* GraphQL */ `
+  subscription OnCreateNotification(
+    $filter: ModelSubscriptionNotificationFilterInput
+    $owner: String
+  ) {
+    onCreateNotification(filter: $filter, owner: $owner) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onUpdateNotification = /* GraphQL */ `
+  subscription OnUpdateNotification(
+    $filter: ModelSubscriptionNotificationFilterInput
+    $owner: String
+  ) {
+    onUpdateNotification(filter: $filter, owner: $owner) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onDeleteNotification = /* GraphQL */ `
+  subscription OnDeleteNotification(
+    $filter: ModelSubscriptionNotificationFilterInput
+    $owner: String
+  ) {
+    onDeleteNotification(filter: $filter, owner: $owner) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onCreateChat = /* GraphQL */ `
+  subscription OnCreateChat(
+    $filter: ModelSubscriptionChatFilterInput
+    $owner: String
+  ) {
+    onCreateChat(filter: $filter, owner: $owner) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onUpdateChat = /* GraphQL */ `
+  subscription OnUpdateChat(
+    $filter: ModelSubscriptionChatFilterInput
+    $owner: String
+  ) {
+    onUpdateChat(filter: $filter, owner: $owner) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onDeleteChat = /* GraphQL */ `
+  subscription OnDeleteChat(
+    $filter: ModelSubscriptionChatFilterInput
+    $owner: String
+  ) {
+    onDeleteChat(filter: $filter, owner: $owner) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onCreateMessage = /* GraphQL */ `
+  subscription OnCreateMessage(
+    $filter: ModelSubscriptionMessageFilterInput
+    $owner: String
+  ) {
+    onCreateMessage(filter: $filter, owner: $owner) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onUpdateMessage = /* GraphQL */ `
+  subscription OnUpdateMessage(
+    $filter: ModelSubscriptionMessageFilterInput
+    $owner: String
+  ) {
+    onUpdateMessage(filter: $filter, owner: $owner) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const onDeleteMessage = /* GraphQL */ `
+  subscription OnDeleteMessage(
+    $filter: ModelSubscriptionMessageFilterInput
+    $owner: String
+  ) {
+    onDeleteMessage(filter: $filter, owner: $owner) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -139,6 +487,10 @@ export const onCreatePost = /* GraphQL */ `
         __typename
       }
       likes {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }
@@ -177,6 +529,10 @@ export const onUpdatePost = /* GraphQL */ `
         nextToken
         __typename
       }
+      notifications {
+        nextToken
+        __typename
+      }
       owner
       __typename
     }
@@ -209,6 +565,10 @@ export const onDeletePost = /* GraphQL */ `
         __typename
       }
       likes {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }

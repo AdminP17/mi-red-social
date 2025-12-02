@@ -8,6 +8,8 @@ import { getCurrentUser } from "aws-amplify/auth";
 import LikeButton from "./LikeButton";
 import Comments from "./Comments";
 import FollowButton from "./FollowButton";
+import ImageModal from "./ImageModal";
+import ConfirmationModal from "./ConfirmationModal";
 
 const client = generateClient();
 
@@ -16,6 +18,8 @@ export default function Feed({ reload, onUserClick }) {
   const [viewMode, setViewMode] = useState("all");
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   async function loadPosts() {
     setLoading(true);
@@ -74,7 +78,11 @@ export default function Feed({ reload, onUserClick }) {
         })
       );
 
-      setPosts(postsWithUrls.filter(p => p !== null));
+      const sortedPosts = postsWithUrls
+        .filter(p => p !== null)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setPosts(sortedPosts);
 
     } catch (err) {
       console.error("Error loading posts:", err);
@@ -84,8 +92,7 @@ export default function Feed({ reload, onUserClick }) {
   }
 
   async function handleDeletePost(postId) {
-    if (!window.confirm("¿Estás seguro de que quieres eliminar este post?")) return;
-
+    // Confirmation handled in UI
     try {
       await client.graphql({
         query: deletePost,
@@ -93,6 +100,7 @@ export default function Feed({ reload, onUserClick }) {
       });
 
       setPosts(prev => prev.filter(p => p.id !== postId));
+      setDeleteConfirm(null);
     } catch (err) {
       console.error("Error deleting post:", err);
       alert("No se pudo eliminar el post.");
@@ -173,38 +181,38 @@ export default function Feed({ reload, onUserClick }) {
                       <FollowButton targetUserId={p.userID} />
                     )}
                   </div>
-                  <p className="text-xs text-gray-500">{new Date(p.createdAt).toLocaleString()}</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-xs text-gray-500">{new Date(p.createdAt).toLocaleString()}</p>
+                    {currentUserId === p.userID && (
+                      <button
+                        onClick={() => setDeleteConfirm(p.id)}
+                        className="text-gray-400 hover:text-red-500 transition p-1"
+                        title="Eliminar publicación"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {currentUserId && p.userID === currentUserId && (
-                <button
-                  onClick={() => handleDeletePost(p.id)}
-                  className="text-gray-400 hover:text-red-500 transition p-1 rounded-full hover:bg-red-50"
-                  title="Eliminar post"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+            {/* Post Content */}
+            <div className="px-4 py-2">
+              <p className="text-gray-800 mb-3">{p.content}</p>
+              {p.imageUrl && (
+                <div className="mt-2">
+                  <img
+                    src={p.imageUrl}
+                    alt="post"
+                    className="w-full object-cover max-h-[500px] rounded-lg cursor-pointer"
+                    onClick={() => setSelectedImage(p.imageUrl)}
+                  />
+                </div>
               )}
             </div>
-
-            {/* Content */}
-            <div className="px-4 pb-2">
-              <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{p.content}</p>
-            </div>
-
-            {/* Image */}
-            {p.imageUrl && (
-              <div className="mt-2">
-                <img
-                  src={p.imageUrl}
-                  alt="post"
-                  className="w-full object-cover max-h-[500px]"
-                />
-              </div>
-            )}
 
             {/* Actions */}
             <div className="px-4 py-3 border-t border-gray-50 bg-gray-50/50">
@@ -223,6 +231,16 @@ export default function Feed({ reload, onUserClick }) {
           </div>
         ))}
       </div>
+
+      <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
+
+      <ConfirmationModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => handleDeletePost(deleteConfirm)}
+        title="¿Eliminar publicación?"
+        message="¿Estás seguro de que quieres eliminar esta publicación? Esta acción no se puede deshacer."
+      />
     </div>
   );
 }

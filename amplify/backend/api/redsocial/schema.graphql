@@ -15,6 +15,11 @@ type UserProfile @model @auth(rules: [
 
   followers: [Follow] @hasMany(indexName: "byFollowed", fields: ["id"])
   following: [Follow] @hasMany(indexName: "byFollower", fields: ["id"])
+
+  # New relationships for Notifications and Messages
+  notificationsSent: [Notification] @hasMany(indexName: "bySender", fields: ["id"])
+  notificationsReceived: [Notification] @hasMany(indexName: "byReceiver", fields: ["id"])
+  messagesSent: [Message] @hasMany(indexName: "bySender", fields: ["id"])
 }
 
 type Post @model @auth(rules: [
@@ -32,6 +37,7 @@ type Post @model @auth(rules: [
   user: UserProfile @belongsTo(fields: ["userID"])
   comments: [Comment] @hasMany(indexName: "byPost", fields: ["id"])
   likes: [Like] @hasMany(indexName: "byPost", fields: ["id"])
+  notifications: [Notification] @hasMany(indexName: "byPost", fields: ["id"])
 }
 
 type Comment @model @auth(rules: [
@@ -73,4 +79,49 @@ type Follow @model @auth(rules: [
 
   follower: UserProfile @belongsTo(fields: ["followerID"])
   followed: UserProfile @belongsTo(fields: ["followedID"])
+}
+
+type Notification @model @auth(rules: [
+  { allow: owner },
+  { allow: private, operations: [create, read] } 
+]) {
+  id: ID!
+  type: String! # LIKE, COMMENT, FOLLOW
+  content: String
+  isRead: Boolean @default(value: "false")
+  
+  senderID: ID! @index(name: "bySender")
+  receiverID: ID! @index(name: "byReceiver")
+  postID: ID @index(name: "byPost")
+
+  sender: UserProfile @belongsTo(fields: ["senderID"])
+  receiver: UserProfile @belongsTo(fields: ["receiverID"])
+  post: Post @belongsTo(fields: ["postID"])
+  
+  createdAt: AWSDateTime
+}
+
+type Chat @model @auth(rules: [
+  { allow: owner },
+  { allow: private, operations: [create, read, update] }
+]) {
+  id: ID!
+  participants: [String] # List of userIDs
+  messages: [Message] @hasMany(indexName: "byChat", fields: ["id"])
+  updatedAt: AWSDateTime
+}
+
+type Message @model @auth(rules: [
+  { allow: owner },
+  { allow: private, operations: [create, read] }
+]) {
+  id: ID!
+  chatID: ID! @index(name: "byChat", sortKeyFields: ["createdAt"])
+  content: String!
+  senderID: ID! @index(name: "bySender")
+  
+  sender: UserProfile @belongsTo(fields: ["senderID"])
+  chat: Chat @belongsTo(fields: ["chatID"])
+  
+  createdAt: AWSDateTime
 }

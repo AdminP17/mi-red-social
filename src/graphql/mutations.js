@@ -31,6 +31,18 @@ export const createUserProfile = /* GraphQL */ `
         nextToken
         __typename
       }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -65,6 +77,18 @@ export const updateUserProfile = /* GraphQL */ `
         __typename
       }
       following {
+        nextToken
+        __typename
+      }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
         nextToken
         __typename
       }
@@ -105,6 +129,18 @@ export const deleteUserProfile = /* GraphQL */ `
         nextToken
         __typename
       }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -124,11 +160,16 @@ export const createPost = /* GraphQL */ `
       media
       createdAt
       updatedAt
+
       comments {
         nextToken
         __typename
       }
       likes {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }
@@ -149,11 +190,16 @@ export const updatePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
+
       comments {
         nextToken
         __typename
       }
       likes {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }
@@ -174,11 +220,16 @@ export const deletePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
+
       comments {
         nextToken
         __typename
       }
       likes {
+        nextToken
+        __typename
+      }
+      notifications {
         nextToken
         __typename
       }
@@ -208,6 +259,7 @@ export const createComment = /* GraphQL */ `
         owner
         __typename
       }
+
       updatedAt
       owner
       __typename
@@ -235,16 +287,7 @@ export const updateComment = /* GraphQL */ `
         owner
         __typename
       }
-      user {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
+
       updatedAt
       owner
       __typename
@@ -272,6 +315,7 @@ export const deleteComment = /* GraphQL */ `
         owner
         __typename
       }
+
       updatedAt
       owner
       __typename
@@ -297,6 +341,7 @@ export const createLike = /* GraphQL */ `
         owner
         __typename
       }
+
       createdAt
       updatedAt
       owner
@@ -323,16 +368,7 @@ export const updateLike = /* GraphQL */ `
         owner
         __typename
       }
-      user {
-        id
-        username
-        bio
-        avatar
-        createdAt
-        updatedAt
-        owner
-        __typename
-      }
+
       createdAt
       updatedAt
       owner
@@ -359,6 +395,7 @@ export const deleteLike = /* GraphQL */ `
         owner
         __typename
       }
+
       createdAt
       updatedAt
       owner
@@ -375,6 +412,8 @@ export const createFollow = /* GraphQL */ `
       id
       followerID
       followedID
+
+
       createdAt
       updatedAt
       owner
@@ -391,6 +430,8 @@ export const updateFollow = /* GraphQL */ `
       id
       followerID
       followedID
+
+
       createdAt
       updatedAt
       owner
@@ -407,6 +448,320 @@ export const deleteFollow = /* GraphQL */ `
       id
       followerID
       followedID
+
+
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const createNotification = /* GraphQL */ `
+  mutation CreateNotification(
+    $input: CreateNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    createNotification(input: $input, condition: $condition) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const updateNotification = /* GraphQL */ `
+  mutation UpdateNotification(
+    $input: UpdateNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    updateNotification(input: $input, condition: $condition) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const deleteNotification = /* GraphQL */ `
+  mutation DeleteNotification(
+    $input: DeleteNotificationInput!
+    $condition: ModelNotificationConditionInput
+  ) {
+    deleteNotification(input: $input, condition: $condition) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const createChat = /* GraphQL */ `
+  mutation CreateChat(
+    $input: CreateChatInput!
+    $condition: ModelChatConditionInput
+  ) {
+    createChat(input: $input, condition: $condition) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const updateChat = /* GraphQL */ `
+  mutation UpdateChat(
+    $input: UpdateChatInput!
+    $condition: ModelChatConditionInput
+  ) {
+    updateChat(input: $input, condition: $condition) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const deleteChat = /* GraphQL */ `
+  mutation DeleteChat(
+    $input: DeleteChatInput!
+    $condition: ModelChatConditionInput
+  ) {
+    deleteChat(input: $input, condition: $condition) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const createMessage = /* GraphQL */ `
+  mutation CreateMessage(
+    $input: CreateMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    createMessage(input: $input, condition: $condition) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const updateMessage = /* GraphQL */ `
+  mutation UpdateMessage(
+    $input: UpdateMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    updateMessage(input: $input, condition: $condition) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const deleteMessage = /* GraphQL */ `
+  mutation DeleteMessage(
+    $input: DeleteMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    deleteMessage(input: $input, condition: $condition) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner

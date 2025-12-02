@@ -3,6 +3,8 @@ import { generateClient } from "aws-amplify/api";
 import { listComments } from "../graphql/queries";
 import { deleteComment, createComment } from "../graphql/mutations";
 import { getCurrentUser } from "aws-amplify/auth";
+import { getUrl } from "@aws-amplify/storage";
+import ConfirmationModal from "./ConfirmationModal";
 
 const client = generateClient();
 
@@ -11,6 +13,7 @@ export default function Comments({ postId }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   useEffect(() => {
     getCurrentUser().then(u => setCurrentUserId(u.userId)).catch(() => { });
@@ -32,9 +35,24 @@ export default function Comments({ postId }) {
       // Filter out orphaned comments
       const validComments = items.filter(c => c.user !== null);
 
-      validComments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      // Fetch avatars for comments
+      const commentsWithAvatars = await Promise.all(
+        validComments.map(async (c) => {
+          if (c.user && c.user.avatar) {
+            try {
+              const urlResult = await getUrl({ key: c.user.avatar });
+              c.user.avatarUrl = urlResult.url.toString();
+            } catch (e) {
+              console.warn("Error loading avatar for comment:", e);
+            }
+          }
+          return c;
+        })
+      );
 
-      setComments(validComments);
+      commentsWithAvatars.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+      setComments(commentsWithAvatars);
     } catch (err) {
       console.error("Error loading comments:", err);
     }
@@ -64,60 +82,72 @@ export default function Comments({ postId }) {
       loadComments();
     } catch (err) {
       console.error("Error adding comment:", err);
+      alert("Error al publicar comentario");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDeleteComment(commentId) {
-    if (!window.confirm("¿Eliminar comentario?")) return;
+  async function handleDelete(commentId) {
+    setDeleteConfirm(commentId);
+  }
+
+  async function confirmDelete() {
+    if (!deleteConfirm) return;
     try {
       await client.graphql({
         query: deleteComment,
-        variables: { input: { id: commentId } }
+        variables: { input: { id: deleteConfirm } }
       });
-      setComments(prev => prev.filter(c => c.id !== commentId));
+      setComments(prev => prev.filter(c => c.id !== deleteConfirm));
+      setDeleteConfirm(null);
     } catch (err) {
       console.error("Error deleting comment:", err);
     }
   }
 
   return (
-    <div className="mt-4 pt-2">
-      {comments.length > 0 && (
-        <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-1">
-          {comments.map((c) => (
-            <div key={c.id} className="flex gap-2 group">
-              <div className="w-6 h-6 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center text-xs text-gray-600 font-bold">
-                {c.user?.username?.charAt(0).toUpperCase() || "U"}
-              </div>
-              <div className="bg-gray-100 p-2 rounded-lg rounded-tl-none flex-grow relative">
-                <div className="flex justify-between items-baseline">
-                  <span className="font-bold text-xs text-gray-900">
-                    {c.user ? c.user.username : "Usuario"}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[10px] text-gray-400">
-                      {new Date(c.createdAt).toLocaleDateString()}
-                    </span>
-                    {currentUserId && c.userID === currentUserId && (
-                      <button
-                        onClick={() => handleDeleteComment(c.id)}
-                        className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
-                        title="Eliminar"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
+    <div className="mt-4">
+      {/* List */}
+      <div className="space-y-4 mb-4">
+        {comments.map((c) => (
+          <div key={c.id} className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+              {c.user?.avatarUrl ? (
+                <img src={c.user.avatarUrl} alt={c.user.username} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-500">
+                  {c.user?.username?.charAt(0).toUpperCase() || "?"}
                 </div>
-                <p className="text-gray-800 text-sm">{c.content}</p>
-              </div>
+              )}
             </div>
-          ))}
-        </div>
-      )}
 
+            <div className="bg-gray-100 p-3 rounded-2xl rounded-tl-none flex-grow relative group">
+              <div className="flex justify-between items-baseline">
+                <span className="font-bold text-xs text-gray-900">
+                  @{c.user ? c.user.username : "Usuario"}
+                </span>
+                <span className="text-[10px] text-gray-400">
+                  {new Date(c.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-sm text-gray-800 mt-1">{c.content}</p>
+
+              {currentUserId === c.userID && (
+                <button
+                  onClick={() => handleDelete(c.id)}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                  title="Borrar"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Input */}
       <div className="flex gap-2 items-center">
         <input
           className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition"
@@ -134,6 +164,14 @@ export default function Comments({ postId }) {
           Publicar
         </button>
       </div>
+
+      <ConfirmationModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={confirmDelete}
+        title="¿Eliminar comentario?"
+        message="¿Estás seguro de que quieres eliminar este comentario?"
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getUrl } from "@aws-amplify/storage";
 import { generateClient } from "aws-amplify/api";
 import { deleteUser } from "aws-amplify/auth";
 import {
@@ -21,6 +22,17 @@ const client = generateClient();
 export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState(null);
+
+    useEffect(() => {
+        if (user?.avatar) {
+            getUrl({ key: user.avatar })
+                .then(res => setAvatarUrl(res.url.toString()))
+                .catch(err => console.error("Error loading sidebar avatar:", err));
+        } else {
+            setAvatarUrl(null);
+        }
+    }, [user]);
 
     const menuItems = [
         { id: "home", label: "Inicio", icon: "🏠" },
@@ -140,14 +152,13 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
 
             {/* User & Sign Out */}
             <div className="mt-auto pt-4 border-t border-gray-100">
-                <div className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 rounded-full cursor-pointer transition-colors mb-2">
+                <div
+                    onClick={() => onTabChange("profile")}
+                    className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 rounded-full cursor-pointer transition-colors mb-2"
+                >
                     <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-600 overflow-hidden">
-                        {user?.avatar ? (
-                            // We might need to pass avatarUrl here too if we want it to show, 
-                            // but for now let's keep it simple or use the one passed from App if available
-                            <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white">
-                                {user?.username?.charAt(0).toUpperCase()}
-                            </div>
+                        {avatarUrl ? (
+                            <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" />
                         ) : (
                             user?.username?.charAt(0).toUpperCase()
                         )}

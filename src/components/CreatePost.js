@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { generateClient } from "@aws-amplify/api";
-import { uploadData } from "@aws-amplify/storage";
+import { uploadData, getUrl } from "@aws-amplify/storage";
 import { getCurrentUser } from "aws-amplify/auth";
 import { v4 as uuidv4 } from "uuid";
 import { createPost } from "../graphql/mutations";
@@ -13,6 +13,21 @@ export default function CreatePost({ user, onPostCreated }) {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState(null);
+
+  useEffect(() => {
+    async function loadAvatar() {
+      if (user?.avatar) {
+        try {
+          const urlResult = await getUrl({ key: user.avatar });
+          setAvatarUrl(urlResult.url.toString());
+        } catch (e) {
+          console.warn("Error loading avatar:", e);
+        }
+      }
+    }
+    loadAvatar();
+  }, [user]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -94,8 +109,12 @@ export default function CreatePost({ user, onPostCreated }) {
   return (
     <div className="p-2">
       <div className="flex gap-3">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex-shrink-0 flex items-center justify-center text-blue-600 font-bold">
-          {user?.username?.charAt(0).toUpperCase() || "U"}
+        <div className="w-10 h-10 bg-blue-100 rounded-full flex-shrink-0 flex items-center justify-center text-blue-600 font-bold overflow-hidden">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" />
+          ) : (
+            user?.username?.charAt(0).toUpperCase() || "U"
+          )}
         </div>
         <div className="flex-grow">
           <textarea

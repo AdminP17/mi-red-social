@@ -28,6 +28,18 @@ export const getUserProfile = /* GraphQL */ `
         nextToken
         __typename
       }
+      notificationsSent {
+        nextToken
+        __typename
+      }
+      notificationsReceived {
+        nextToken
+        __typename
+      }
+      messagesSent {
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -47,6 +59,329 @@ export const listUserProfiles = /* GraphQL */ `
         username
         bio
         avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getNotification = /* GraphQL */ `
+  query GetNotification($id: ID!) {
+    getNotification(id: $id) {
+      id
+      type
+      content
+      isRead
+      senderID
+      receiverID
+      postID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      receiver {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      post {
+        id
+        userID
+        content
+        media
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const listNotifications = /* GraphQL */ `
+  query ListNotifications(
+    $filter: ModelNotificationFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listNotifications(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        type
+        content
+        isRead
+        senderID
+        receiverID
+        postID
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getChat = /* GraphQL */ `
+  query GetChat($id: ID!) {
+    getChat(id: $id) {
+      id
+      participants
+      messages {
+        nextToken
+        __typename
+      }
+      updatedAt
+      createdAt
+      owner
+      __typename
+    }
+  }
+`;
+export const listChats = /* GraphQL */ `
+  query ListChats(
+    $filter: ModelChatFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listChats(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const getMessage = /* GraphQL */ `
+  query GetMessage($id: ID!) {
+    getMessage(id: $id) {
+      id
+      chatID
+      content
+      senderID
+      sender {
+        id
+        username
+        bio
+        avatar
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      chat {
+        id
+        participants
+        updatedAt
+        createdAt
+        owner
+        __typename
+      }
+      createdAt
+      updatedAt
+      owner
+      __typename
+    }
+  }
+`;
+export const listMessages = /* GraphQL */ `
+  query ListMessages(
+    $filter: ModelMessageFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listMessages(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        chatID
+        content
+        senderID
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const notificationsBySenderID = /* GraphQL */ `
+  query NotificationsBySenderID(
+    $senderID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelNotificationFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    notificationsBySenderID(
+      senderID: $senderID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        type
+        content
+        isRead
+        senderID
+        receiverID
+        postID
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const notificationsByReceiverID = /* GraphQL */ `
+  query NotificationsByReceiverID(
+    $receiverID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelNotificationFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    notificationsByReceiverID(
+      receiverID: $receiverID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        type
+        content
+        isRead
+        senderID
+        receiverID
+        postID
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const notificationsByPostID = /* GraphQL */ `
+  query NotificationsByPostID(
+    $postID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelNotificationFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    notificationsByPostID(
+      postID: $postID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        type
+        content
+        isRead
+        senderID
+        receiverID
+        postID
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const messagesByChatIDAndCreatedAt = /* GraphQL */ `
+  query MessagesByChatIDAndCreatedAt(
+    $chatID: ID!
+    $createdAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelMessageFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    messagesByChatIDAndCreatedAt(
+      chatID: $chatID
+      createdAt: $createdAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        chatID
+        content
+        senderID
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      nextToken
+      __typename
+    }
+  }
+`;
+export const messagesBySenderID = /* GraphQL */ `
+  query MessagesBySenderID(
+    $senderID: ID!
+    $sortDirection: ModelSortDirection
+    $filter: ModelMessageFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    messagesBySenderID(
+      senderID: $senderID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        chatID
+        content
+        senderID
         createdAt
         updatedAt
         owner
@@ -84,6 +419,10 @@ export const getPost = /* GraphQL */ `
         nextToken
         __typename
       }
+      notifications {
+        nextToken
+        __typename
+      }
       owner
       __typename
     }
@@ -102,7 +441,6 @@ export const listPosts = /* GraphQL */ `
         content
         media
         createdAt
-        updatedAt
         updatedAt
         user {
           id
@@ -139,12 +477,6 @@ export const postsByUserID = /* GraphQL */ `
         media
         createdAt
         updatedAt
-        updatedAt
-        user {
-          id
-          username
-          avatar
-        }
         owner
         __typename
       }
@@ -201,7 +533,6 @@ export const listComments = /* GraphQL */ `
         content
         createdAt
         updatedAt
-        updatedAt
         user {
           id
           username
@@ -237,12 +568,6 @@ export const commentsByPostID = /* GraphQL */ `
         content
         createdAt
         updatedAt
-        updatedAt
-        user {
-          id
-          username
-          avatar
-        }
         owner
         __typename
       }

@@ -36,6 +36,7 @@ function MainContent() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("home");
+  const [dbUser, setDbUser] = useState(null);
 
   // ⭐ CREA AUTOMÁTICAMENTE EL USERPROFILE si no existe
   const creatingProfile = React.useRef(false);
@@ -52,6 +53,10 @@ function MainContent() {
           query: getUserProfile,
           variables: { id: user.userId }
         });
+
+        if (result.data.getUserProfile) {
+          setDbUser(result.data.getUserProfile);
+        }
 
         const exists = !!result.data.getUserProfile;
 
@@ -89,10 +94,9 @@ function MainContent() {
       setReloadFeed(prev => prev + 1); // Refresh feed
     } else if (tab === "profile") {
       // 🔥 FIX: Map Amplify user to the format UserProfile expects
-      setViewingProfile({
+      setViewingProfile(dbUser ? { ...user, ...dbUser } : {
         id: user.userId,
         username: user.username,
-        // We don't have avatar/bio here yet, but UserProfile will fetch them or handle missing
       });
     } else if (tab === "notifications") {
       // Logic handled in render
@@ -109,7 +113,7 @@ function MainContent() {
 
       {/* LEFT SIDEBAR */}
       <Sidebar
-        user={user}
+        user={dbUser ? { ...user, ...dbUser } : user}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onSignOut={signOut}
