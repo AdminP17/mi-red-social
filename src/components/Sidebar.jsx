@@ -29,14 +29,15 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
     const [isDeleting, setIsDeleting] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
+    const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
     const { colors, theme, toggleTheme } = useTheme();
 
     const menuItems = [
         { id: "home", icon: Icons.Home, label: "Inicio", badge: 0 },
-        { id: "notifications", icon: Icons.Bell, label: "Notificaciones", badge: unreadCount },
-        { id: "messages", icon: Icons.MessageCircle, label: "Mensajes", badge: 0 },
+        { id: "notifications", icon: Icons.Bell, label: "Notificaciones", badge: unreadNotifsCount },
+        { id: "messages", icon: Icons.MessageCircle, label: "Mensajes", badge: unreadMessagesCount },
         { id: "profile", icon: Icons.User, label: "Perfil", badge: 0 }
     ];
 
@@ -60,12 +61,17 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
                     query: notificationsByReceiverID,
                     variables: {
                         receiverID: user.userId,
-                        limit: 100
+                        limit: 1000,
+                        filter: { isRead: { eq: false } }
                     }
                 });
                 const items = res.data.notificationsByReceiverID.items;
-                const unread = items.filter(n => !n.isRead).length;
-                setUnreadCount(unread);
+
+                const messages = items.filter(n => n.type === 'MESSAGE').length;
+                const notifs = items.filter(n => n.type !== 'MESSAGE').length;
+
+                setUnreadMessagesCount(messages);
+                setUnreadNotifsCount(notifs);
             } catch (e) {
                 console.error("Error fetching unread count:", e);
             }
@@ -83,8 +89,13 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
             query: onCreateNotification,
             variables: { filter: { receiverID: { eq: user.userId } } }
         }).subscribe({
-            next: () => {
-                setUnreadCount(prev => prev + 1);
+            next: ({ data }) => {
+                const newNotif = data.onCreateNotification;
+                if (newNotif.type === 'MESSAGE') {
+                    setUnreadMessagesCount(prev => prev + 1);
+                } else {
+                    setUnreadNotifsCount(prev => prev + 1);
+                }
             },
             error: err => console.error("Notif create subscription error:", err)
         });
@@ -97,7 +108,11 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
             next: ({ data }) => {
                 const updated = data.onUpdateNotification;
                 if (updated.isRead) {
-                    setUnreadCount(prev => Math.max(0, prev - 1));
+                    if (updated.type === 'MESSAGE') {
+                        setUnreadMessagesCount(prev => Math.max(0, prev - 1));
+                    } else {
+                        setUnreadNotifsCount(prev => Math.max(0, prev - 1));
+                    }
                 }
             },
             error: err => console.error("Notif update subscription error:", err)

@@ -70,25 +70,24 @@ export default function Notifications({ onPostClick, onUserClick }) {
                       avatar
                     }
                   }
-                  nextToken
                 }
               }
             `;
 
-            const res = await client.graphql({
+            const result = await client.graphql({
                 query: notificationsByReceiverIDWithSender,
-                variables: {
-                    receiverID: currentUserId,
-                }
+                variables: { receiverID: currentUserId }
             });
 
-            const items = res.data.notificationsByReceiverID.items;
+            const items = result.data.notificationsByReceiverID.items;
 
-            // Enrich with avatars
-            const itemsWithAvatars = await Promise.all(items.map(async (n) => {
+            const itemsWithAvatars = await Promise.all(items.map(async n => {
                 if (n.sender && n.sender.avatar) {
                     try {
-                        const urlResult = await getUrl({ key: n.sender.avatar });
+                        const urlResult = await getUrl({
+                            path: n.sender.avatar,
+                            options: { validateObjectExistence: false }
+                        });
                         n.sender.avatarUrl = urlResult.url.toString();
                     } catch (e) {
                         console.warn("Error loading avatar for notification:", e);
@@ -172,14 +171,11 @@ export default function Notifications({ onPostClick, onUserClick }) {
                 <div
                     key={n.id}
                     onClick={() => handleNotificationClick(n)}
-                    className={`p-4 rounded-xl transition-all flex items-start justify-between cursor-pointer group relative overflow-hidden ${!n.isRead ? 'bg-violet-50 dark:bg-violet-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
-                    style={{ borderBottom: `1px solid ${colors.border}` }}
+                    className={`flex items-center justify-between p-4 rounded-xl cursor-pointer transition-colors group border border-transparent hover:border-slate-200 dark:hover:border-slate-800`}
+                    style={{
+                        backgroundColor: n.isRead ? 'transparent' : colors.bgSecondary
+                    }}
                 >
-                    {/* Unread Indicator */}
-                    {!n.isRead && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-violet-500"></div>
-                    )}
-
                     <div className="flex items-center space-x-4">
                         {/* Icon based on type */}
                         <div className="relative">
@@ -192,7 +188,7 @@ export default function Notifications({ onPostClick, onUserClick }) {
                                     </div>
                                 )}
                             </div>
-                            <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 ${n.type === 'LIKE' ? 'bg-red-500' : n.type === 'COMMENT' ? 'bg-blue-500' : 'bg-violet-500'}`}>
+                            <div className={`absolute - bottom - 1 - right - 1 w - 6 h - 6 rounded - full flex items - center justify - center border - 2 border - white dark: border - slate - 900 ${n.type === 'LIKE' ? 'bg-red-500' : n.type === 'COMMENT' ? 'bg-blue-500' : 'bg-violet-500'} `}>
                                 {n.type === 'LIKE' ? <Icons.Heart size={12} className="text-white fill-current" /> : n.type === 'COMMENT' ? <Icons.MessageCircle size={12} className="text-white" /> : <Icons.User size={12} className="text-white" />}
                             </div>
                         </div>
@@ -222,8 +218,9 @@ export default function Notifications({ onPostClick, onUserClick }) {
                     >
                         <Icons.X size={16} />
                     </button>
-                </div>
-            ))}
-        </div>
+                </div >
+            ))
+            }
+        </div >
     );
 }
