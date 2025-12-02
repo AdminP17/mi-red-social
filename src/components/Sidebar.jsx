@@ -14,8 +14,10 @@ import {
     commentsByUserID,
     likesByUserID,
     followsByFollowerID,
-    followsByFollowedID
+    followsByFollowedID,
+    notificationsByReceiverID
 } from "../graphql/queries";
+import { onCreateNotification, onUpdateNotification } from "../graphql/subscriptions";
 import ConfirmationModal from "./ConfirmationModal";
 
 const client = generateClient();
@@ -24,8 +26,14 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState(null);
-
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const menuItems = [
+        { id: "home", icon: "🏠", label: "Inicio", badge: 0 },
+        { id: "notifications", icon: "🔔", label: "Notificaciones", badge: unreadCount },
+        { id: "profile", icon: "👤", label: "Perfil", badge: 0 }
+    ];
 
     useEffect(() => {
         if (user?.avatar) {
@@ -37,12 +45,70 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
         }
     }, [user]);
 
-    const menuItems = [
-        { id: "home", label: "Inicio", icon: "🏠" },
-        { id: "notifications", label: "Notificaciones", icon: "🔔" },
-        { id: "messages", label: "Mensajes", icon: "✉️" },
-        { id: "profile", label: "Perfil", icon: "👤" },
-    ];
+    // Fetch Unread Notifications Count
+    useEffect(() => {
+        if (!user?.userId) return;
+
+        const fetchUnread = async () => {
+            try {
+                // In a real app, we would filter by isRead: false
+                // But for now, let's just count all notifications as a demo or assume we want to show total count
+                // Or better, let's filter client side if API doesn't support complex filter on non-indexed field easily without setup
+                // Schema has isRead, but we might not have an index on it combined with receiverID.
+                // Let's just fetch latest 100 and count unread.
+                const res = await client.graphql({
+                    query: notificationsByReceiverID,
+                    variables: {
+                        receiverID: user.userId,
+                        limit: 100
+                    }
+                });
+                const items = res.data.notificationsByReceiverID.items;
+                const unread = items.filter(n => !n.isRead).length;
+                setUnreadCount(unread);
+            } catch (e) {
+                console.error("Error fetching unread count:", e);
+            }
+        };
+
+        fetchUnread();
+    }, [user]);
+
+    // Subscribe to increment count (create) and decrement (update)
+    useEffect(() => {
+        if (!user?.userId) return;
+
+        // Create subscription
+        const createSub = client.graphql({
+            query: onCreateNotification,
+            variables: { filter: { receiverID: { eq: user.userId } } }
+        }).subscribe({
+            next: () => {
+                setUnreadCount(prev => prev + 1);
+            },
+            error: err => console.error("Notif create subscription error:", err)
+        });
+
+        // Update subscription (for mark as read)
+        // Note: We need to import onUpdateNotification
+        const updateSub = client.graphql({
+            query: onUpdateNotification,
+            variables: { filter: { receiverID: { eq: user.userId } } }
+        }).subscribe({
+            next: ({ data }) => {
+                const updated = data.onUpdateNotification;
+                if (updated.isRead) {
+                    setUnreadCount(prev => Math.max(0, prev - 1));
+                }
+            },
+            error: err => console.error("Notif update subscription error:", err)
+        });
+
+        return () => {
+            createSub.unsubscribe();
+            updateSub.unsubscribe();
+        };
+    }, [user]);
 
     const handleDeleteAccount = () => {
         setShowDeleteConfirm(true);
@@ -121,13 +187,18 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
                     <button
                         key={item.id}
                         onClick={() => onTabChange(item.id)}
-                        className={`w-full flex items-center space-x-4 px-4 py-3 rounded-full text-xl transition-colors ${activeTab === item.id
+                        className={`w-full flex items-center space-x-4 px-4 py-3 rounded-full text-xl transition-colors relative ${activeTab === item.id
                             ? "font-bold text-gray-900"
                             : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
                         <span>{item.icon}</span>
                         <span>{item.label}</span>
+                        {item.badge > 0 && (
+                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full absolute left-8 top-2 border-2 border-white">
+                                {item.badge > 99 ? "99+" : item.badge}
+                            </span>
+                        )}
                     </button>
                 ))}
 

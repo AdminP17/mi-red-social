@@ -13,6 +13,7 @@ import SearchBar from "./components/SearchBar";
 import Notifications from "./components/Notifications";
 import UserProfile from "./components/UserProfile";
 
+import PostDetail from "./components/PostDetail";
 import Sidebar from "./components/Sidebar";
 
 const client = generateClient();
@@ -35,6 +36,7 @@ function MainContent() {
   const [reloadFeed, setReloadFeed] = useState(0);
   const [selectedUser, setSelectedUser] = useState(null);
   const [viewingProfile, setViewingProfile] = useState(null);
+  const [viewingPost, setViewingPost] = useState(null);
   const [activeTab, setActiveTab] = useState("home");
   const [dbUser, setDbUser] = useState(null);
 
@@ -89,6 +91,7 @@ function MainContent() {
   // Handle Tab Changes
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    setViewingPost(null); // Reset viewing post
     if (tab === "home") {
       setViewingProfile(null);
       setReloadFeed(prev => prev + 1); // Refresh feed
@@ -145,10 +148,28 @@ function MainContent() {
               setActiveTab("home");
             }} />
           </div>
+        ) : viewingPost ? (
+          <div className="p-4">
+            <PostDetail
+              postId={viewingPost}
+              onBack={() => setViewingPost(null)}
+              onUserClick={(u) => {
+                setViewingPost(null);
+                setViewingProfile(u);
+                setActiveTab("profile_view");
+              }}
+            />
+          </div>
         ) : activeTab === "notifications" ? (
           <div className="p-4">
             <h2 className="text-xl font-bold mb-4">Notificaciones</h2>
-            <Notifications />
+            <Notifications
+              onPostClick={(postId) => setViewingPost(postId)}
+              onUserClick={(u) => {
+                setViewingProfile(u);
+                setActiveTab("profile_view");
+              }}
+            />
           </div>
         ) : (
           /* HOME FEED */

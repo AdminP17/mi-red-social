@@ -83,6 +83,7 @@ type Follow @model @auth(rules: [
 
 type Notification @model @auth(rules: [
   { allow: owner },
+  { allow: owner, ownerField: "receiverID", operations: [read, update, delete] },
   { allow: private, operations: [create, read] } 
 ]) {
   id: ID!

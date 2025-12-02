@@ -67,7 +67,7 @@ export default function Comments({ postId }) {
     setLoading(true);
 
     try {
-      await client.graphql({
+      const res = await client.graphql({
         query: createComment,
         variables: {
           input: {
@@ -77,6 +77,47 @@ export default function Comments({ postId }) {
           },
         },
       });
+
+      // Create Notification
+      // We need post owner.
+      const postRes = await client.graphql({
+        query: `
+          query GetPostOwner($id: ID!) {
+            getPost(id: $id) {
+              userID
+            }
+          }
+        `,
+        variables: { id: postId }
+      });
+      const postOwnerID = postRes.data.getPost.userID;
+
+      // Custom mutation to avoid fetching post details
+      const createNotificationSimple = /* GraphQL */ `
+        mutation CreateNotification(
+          $input: CreateNotificationInput!
+        ) {
+          createNotification(input: $input) {
+            id
+            type
+          }
+        }
+      `;
+
+      if (postOwnerID && postOwnerID !== currentUserId) {
+        await client.graphql({
+          query: createNotificationSimple,
+          variables: {
+            input: {
+              type: "COMMENT",
+              content: `comentó: "${text.substring(0, 20)}${text.length > 20 ? '...' : ''}"`,
+              senderID: currentUserId,
+              receiverID: postOwnerID,
+              postID: postId
+            }
+          }
+        });
+      }
 
       setText("");
       loadComments();

@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { generateClient } from "aws-amplify/api";
-import { createLike, deleteLike } from "../graphql/mutations";
-import { listLikes } from "../graphql/queries";
+import { createLike, deleteLike, createNotification } from "../graphql/mutations";
 import { getCurrentUser } from "aws-amplify/auth";
 
 const client = generateClient();
@@ -91,7 +90,51 @@ export default function LikeButton({ postID }) {
           }
         });
 
-        setLikeId(result.data.createLike.id);
+        const newLike = result.data.createLike;
+        setLikeId(newLike.id);
+
+        // Create Notification (if not own post)
+        // Fetch post to get owner
+        const postRes = await client.graphql({
+          query: `
+            query GetPostOwner($id: ID!) {
+              getPost(id: $id) {
+                userID
+              }
+            }
+          `,
+          variables: { id: postID }
+        });
+
+        const postOwnerID = postRes.data.getPost.userID;
+
+        // Custom mutation to avoid fetching post details which causes errors if postID is null or not resolved yet
+        const createNotificationSimple = /* GraphQL */ `
+          mutation CreateNotification(
+            $input: CreateNotificationInput!
+          ) {
+            createNotification(input: $input) {
+              id
+              type
+            }
+          }
+        `;
+
+        if (postOwnerID && postOwnerID !== user.userId) {
+          await client.graphql({
+            query: createNotificationSimple,
+            variables: {
+              input: {
+                type: "LIKE",
+                content: "le dio like a tu publicación",
+                senderID: user.userId,
+                receiverID: postOwnerID,
+                postID: postID
+              }
+            }
+          });
+        }
+
       } else {
         // REMOVE LIKE
         if (likeId) {

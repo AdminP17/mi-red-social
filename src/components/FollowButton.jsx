@@ -73,8 +73,35 @@ export default function FollowButton({ targetUserId }) {
             }
           }
         });
+
         setIsFollowing(true);
         setFollowId(res.data.createFollow.id);
+
+        // Custom mutation to avoid fetching post details (which is null for follows)
+        const createNotificationSimple = /* GraphQL */ `
+          mutation CreateNotification(
+            $input: CreateNotificationInput!
+          ) {
+            createNotification(input: $input) {
+              id
+              type
+            }
+          }
+        `;
+
+        // Create Notification
+        await client.graphql({
+          query: createNotificationSimple,
+          variables: {
+            input: {
+              type: "FOLLOW",
+              content: "comenzó a seguirte",
+              senderID: currentUserId,
+              receiverID: targetUserId,
+              // No postID for follows
+            }
+          }
+        });
       }
     } catch (err) {
       console.error("Error toggling follow:", err);
@@ -93,8 +120,8 @@ export default function FollowButton({ targetUserId }) {
       }}
       disabled={loading}
       className={`px-3 py-1 text-sm rounded-full font-medium transition ${isFollowing
-          ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-          : "bg-blue-600 text-white hover:bg-blue-700"
+        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
+        : "bg-blue-600 text-white hover:bg-blue-700"
         }`}
     >
       {loading ? "..." : isFollowing ? "Siguiendo" : "Seguir"}
