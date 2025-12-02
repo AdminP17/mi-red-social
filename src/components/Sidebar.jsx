@@ -16,6 +16,7 @@ import {
     followsByFollowerID,
     followsByFollowedID
 } from "../graphql/queries";
+import ConfirmationModal from "./ConfirmationModal";
 
 const client = generateClient();
 
@@ -23,6 +24,8 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState(null);
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         if (user?.avatar) {
@@ -41,9 +44,11 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
         { id: "profile", label: "Perfil", icon: "👤" },
     ];
 
-    const handleDeleteAccount = async () => {
-        if (!window.confirm("⚠️ ¿Estás seguro de que quieres eliminar tu cuenta permanentemente? Esta acción borrará todos tus posts, comentarios y likes. NO se puede deshacer.")) return;
+    const handleDeleteAccount = () => {
+        setShowDeleteConfirm(true);
+    };
 
+    const confirmDeleteAccount = async () => {
         setIsDeleting(true);
         try {
             const userID = user.userId;
@@ -99,6 +104,7 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
             alert("Error al eliminar la cuenta. Inténtalo de nuevo.");
         } finally {
             setIsDeleting(false);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -176,6 +182,14 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
                     Cerrar sesión
                 </button>
             </div>
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDeleteAccount}
+                title="¿Eliminar cuenta permanentemente?"
+                message="Esta acción borrará todos tus posts, comentarios y likes. NO se puede deshacer. ¿Estás seguro?"
+            />
         </div>
     );
 }

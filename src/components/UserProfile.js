@@ -6,6 +6,7 @@ import { getUrl, uploadData } from "@aws-amplify/storage";
 import { getCurrentUser } from "aws-amplify/auth";
 import { v4 as uuidv4 } from "uuid";
 import FollowButton from "./FollowButton";
+import ImageModal from "./ImageModal";
 
 const client = generateClient();
 
@@ -125,6 +126,7 @@ export default function UserProfile({ user, onBack }) {
     };
 
     const isOwnProfile = currentUser?.userId === user.id;
+    const [selectedImage, setSelectedImage] = useState(null);
 
     return (
         <div className="bg-white shadow-md rounded-xl overflow-hidden">
@@ -200,7 +202,11 @@ export default function UserProfile({ user, onBack }) {
 
                 <div className="grid grid-cols-3 gap-1">
                     {posts.map(p => (
-                        <div key={p.id} className="aspect-square bg-gray-100 relative overflow-hidden group cursor-pointer hover:opacity-90 transition">
+                        <div
+                            key={p.id}
+                            className="aspect-square bg-gray-100 relative overflow-hidden group cursor-pointer hover:opacity-90 transition"
+                            onClick={() => p.imageUrl && setSelectedImage(p.imageUrl)}
+                        >
                             {p.imageUrl ? (
                                 <img src={p.imageUrl} alt="Post" className="w-full h-full object-cover" />
                             ) : (
@@ -212,6 +218,8 @@ export default function UserProfile({ user, onBack }) {
                     ))}
                 </div>
             </div>
+
+            <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
         </div>
     );
 }
