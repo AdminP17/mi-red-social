@@ -155,10 +155,69 @@ function MainContent() {
               </button>
               <h2 className="text-xl font-bold" style={{ color: colors.text }}>Perfil</h2>
             </div>
-            <UserProfile user={viewingProfile} onBack={() => {
-              setViewingProfile(null);
-              setActiveTab("home");
-            }} />
+            <UserProfile
+              user={viewingProfile}
+              onBack={() => {
+                setViewingProfile(null);
+                setActiveTab("home");
+              }}
+              onMessage={(targetUser) => {
+                // Check if it's me
+                if (targetUser.id === user.userId) return;
+
+                // Switch to messages tab and set selected chat
+                // We need to find or create the chat. 
+                // Since ChatList handles creation, we can just switch tab and let user find them, 
+                // OR better: we can implement a helper here or pass a "startChatWith" prop to ChatList.
+                // For simplicity, let's pass a "startChatWith" state to MainContent and handle it in ChatList or here.
+
+                // Let's implement the logic here to find/create chat so we can pass the CHAT object to ChatWindow directly.
+                // Actually, reusing ChatList's logic is better but we don't have access to its internal state.
+                // Let's implement a quick find/create here.
+
+                async function openChat() {
+                  try {
+                    // 1. List chats to see if exists
+                    // This is inefficient without a GSI, but consistent with ChatList implementation for now
+                    const { listChats } = require("./graphql/queries");
+                    const { createChat } = require("./graphql/mutations");
+
+                    const res = await client.graphql({
+                      query: listChats,
+                      variables: { limit: 1000 }
+                    });
+
+                    const allChats = res.data.listChats.items;
+                    let chat = allChats.find(c =>
+                      c.participants.includes(user.userId) && c.participants.includes(targetUser.id)
+                    );
+
+                    if (!chat) {
+                      const createRes = await client.graphql({
+                        query: createChat,
+                        variables: {
+                          input: {
+                            participants: [user.userId, targetUser.id]
+                          }
+                        }
+                      });
+                      chat = createRes.data.createChat;
+                    }
+
+                    // Attach otherUser for UI
+                    chat.otherUser = targetUser;
+
+                    setSelectedChat(chat);
+                    setActiveTab("messages");
+                    setViewingProfile(null);
+                  } catch (e) {
+                    console.error("Error opening chat:", e);
+                    alert("Error al abrir el chat");
+                  }
+                }
+                openChat();
+              }}
+            />
           </div>
         ) : viewingPost ? (
           <div className="p-0">

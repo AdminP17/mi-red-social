@@ -12,7 +12,7 @@ import { Icons } from "./Icons";
 
 const client = generateClient();
 
-export default function UserProfile({ user, onBack }) {
+export default function UserProfile({ user, onBack, onMessage }) {
     const { colors } = useTheme();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -173,7 +173,19 @@ export default function UserProfile({ user, onBack }) {
                     </div>
 
                     {/* Actions */}
-                    <div className="mb-2">
+                    <div className="flex space-x-2 mb-4">
+                        {/* Message Button */}
+                        {onMessage && (
+                            <button
+                                onClick={() => onMessage(user)}
+                                className="p-2 rounded-full border transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
+                                style={{ borderColor: colors.border, color: colors.text }}
+                                title="Enviar mensaje"
+                            >
+                                <Icons.MessageCircle size={20} />
+                            </button>
+                        )}
+
                         {!isOwnProfile && <FollowButton targetUserId={user.id} />}
                     </div>
                 </div>
