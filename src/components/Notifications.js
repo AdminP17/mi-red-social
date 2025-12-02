@@ -31,8 +31,10 @@ export default function Notifications({ onPostClick, onUserClick }) {
         }).subscribe({
             next: ({ data }) => {
                 const newNotif = data.onCreateNotification;
-                // Add to top of list
-                setNotifications(prev => [newNotif, ...prev]);
+                // Add to top of list if not a message
+                if (newNotif.type !== 'MESSAGE') {
+                    setNotifications(prev => [newNotif, ...prev]);
+                }
             },
             error: (err) => console.error("Subscription error:", err)
         });
@@ -79,13 +81,13 @@ export default function Notifications({ onPostClick, onUserClick }) {
                 variables: { receiverID: currentUserId }
             });
 
-            const items = result.data.notificationsByReceiverID.items;
+            const items = result.data.notificationsByReceiverID.items.filter(n => n.type !== 'MESSAGE');
 
             const itemsWithAvatars = await Promise.all(items.map(async n => {
                 if (n.sender && n.sender.avatar) {
                     try {
                         const urlResult = await getUrl({
-                            path: n.sender.avatar,
+                            key: n.sender.avatar,
                             options: { validateObjectExistence: false }
                         });
                         n.sender.avatarUrl = urlResult.url.toString();
@@ -95,6 +97,9 @@ export default function Notifications({ onPostClick, onUserClick }) {
                 }
                 return n;
             }));
+
+            // Sort by createdAt descending
+            itemsWithAvatars.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
             setNotifications(itemsWithAvatars);
 
@@ -188,8 +193,15 @@ export default function Notifications({ onPostClick, onUserClick }) {
                                     </div>
                                 )}
                             </div>
-                            <div className={`absolute - bottom - 1 - right - 1 w - 6 h - 6 rounded - full flex items - center justify - center border - 2 border - white dark: border - slate - 900 ${n.type === 'LIKE' ? 'bg-red-500' : n.type === 'COMMENT' ? 'bg-blue-500' : 'bg-violet-500'} `}>
-                                {n.type === 'LIKE' ? <Icons.Heart size={12} className="text-white fill-current" /> : n.type === 'COMMENT' ? <Icons.MessageCircle size={12} className="text-white" /> : <Icons.User size={12} className="text-white" />}
+                            <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 ${n.type === 'LIKE' ? 'bg-red-500' :
+                                n.type === 'COMMENT' ? 'bg-blue-500' :
+                                    n.type === 'MESSAGE' ? 'bg-green-500' :
+                                        'bg-violet-500'
+                                }`}>
+                                {n.type === 'LIKE' && <Icons.Heart size={12} className="text-white fill-current" />}
+                                {n.type === 'COMMENT' && <Icons.MessageCircle size={12} className="text-white" />}
+                                {n.type === 'MESSAGE' && <Icons.MessageSquare size={12} className="text-white" />}
+                                {n.type === 'FOLLOW' && <Icons.User size={12} className="text-white" />}
                             </div>
                         </div>
 
@@ -200,6 +212,7 @@ export default function Notifications({ onPostClick, onUserClick }) {
                                     {n.type === 'LIKE' && "le gustó tu publicación"}
                                     {n.type === 'COMMENT' && "comentó en tu publicación"}
                                     {n.type === 'FOLLOW' && "comenzó a seguirte"}
+                                    {n.type === 'MESSAGE' && "te envió un mensaje"}
                                 </span>
                             </p>
                             {n.content && n.type === 'COMMENT' && (

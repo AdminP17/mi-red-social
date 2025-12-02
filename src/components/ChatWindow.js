@@ -53,7 +53,6 @@ export default function ChatWindow({ chat, currentUser, onBack }) {
 
         return () => subscription.unsubscribe();
     }, [chat.id]);
-
     // Mark messages as read when chat opens
     useEffect(() => {
         const markAsRead = async () => {
@@ -154,6 +153,8 @@ export default function ChatWindow({ chat, currentUser, onBack }) {
                     }
                 }
             });
+
+
 
         } catch (err) {
             console.error("Error sending message:", err);
