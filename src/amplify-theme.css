@@ -1,0 +1,74 @@
+/* Custom Amplify UI Theme */
+:root {
+  --amplify-colors-brand-primary-10: #EFF6FF;
+  --amplify-colors-brand-primary-20: #DBEAFE;
+  --amplify-colors-brand-primary-40: #93C5FD;
+  --amplify-colors-brand-primary-60: #3B82F6;
+  --amplify-colors-brand-primary-80: #2563EB;
+  --amplify-colors-brand-primary-90: #1D4ED8;
+  --amplify-colors-brand-primary-100: #1E40AF;
+  
+  --amplify-components-authenticator-router-box-shadow: 0 0 0 0;
+  --amplify-components-authenticator-router-border-width: 0;
+  --amplify-components-button-primary-background-color: #2563EB;
+  --amplify-components-button-primary-hover-background-color: #1D4ED8;
+  --amplify-components-button-border-radius: 0.75rem;
+  --amplify-components-fieldcontrol-border-radius: 0.75rem;
+  --amplify-components-tabs-item-active-border-color: #2563EB;
+  --amplify-components-tabs-item-active-color: #2563EB;
+  --amplify-components-tabs-item-focus-color: #2563EB;
+  --amplify-space-medium: 1.5rem;
+  --amplify-space-large: 2rem;
+}
+
+/* Dark mode overrides */
+.dark {
+  --amplify-colors-background-primary: #0F172A;
+  --amplify-colors-background-secondary: #1E293B;
+  --amplify-colors-font-primary: #F1F5F9;
+  --amplify-colors-font-secondary: #94A3B8;
+  --amplify-colors-border-primary: #334155;
+}
+
+/* Amplify Authenticator custom styling */
+[data-amplify-authenticator] {
+  --amplify-components-authenticator-container-width-max: 28rem;
+}
+
+[data-amplify-authenticator] [data-amplify-router] {
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #E5E7EB;
+}
+
+[data-amplify-authenticator] [data-amplify-form] {
+  padding: 2rem;
+}
+
+[data-amplify-authenticator] input {
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+}
+
+[data-amplify-authenticator] input:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+[data-amplify-authenticator] button[type="submit"] {
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+[data-amplify-authenticator] button[type="submit"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+}
+
+[data-amplify-authenticator] [data-amplify-footer] {
+  padding: 1.5rem 2rem;
+  background: #F8F9FA;
+  border-top: 1px solid #E5E7EB;
+}

@@ -7,10 +7,13 @@ import { getCurrentUser } from "aws-amplify/auth";
 import { v4 as uuidv4 } from "uuid";
 import FollowButton from "./FollowButton";
 import ImageModal from "./ImageModal";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function UserProfile({ user, onBack }) {
+    const { colors } = useTheme();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [stats, setStats] = useState({ followers: 0, following: 0 });
@@ -129,14 +132,17 @@ export default function UserProfile({ user, onBack }) {
     const [selectedImage, setSelectedImage] = useState(null);
 
     return (
-        <div className="bg-white shadow-md rounded-xl overflow-hidden">
+        <div className="shadow-md rounded-xl overflow-hidden transition-colors duration-300"
+            style={{ backgroundColor: colors.surface }}>
             {/* Header / Cover */}
-            <div className="h-32 bg-gradient-to-r from-blue-400 to-indigo-500 relative">
+            <div className="h-32 bg-gradient-to-r from-violet-400 to-fuchsia-500 relative">
                 <button
                     onClick={onBack}
-                    className="absolute top-4 left-4 bg-white/20 hover:bg-white/40 text-white px-3 py-1 rounded-full backdrop-blur-sm transition font-medium"
+                    className="absolute top-4 left-4 px-3 py-1 rounded-full backdrop-blur-sm transition font-medium flex items-center"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#FFFFFF' }}
                 >
-                    ← Volver
+                    <Icons.ArrowLeft size={18} className="mr-1" />
+                    Volver
                 </button>
             </div>
 
@@ -145,11 +151,13 @@ export default function UserProfile({ user, onBack }) {
                 <div className="flex justify-between items-end -mt-12 mb-4">
                     {/* Avatar */}
                     <div className="relative group">
-                        <div className="w-24 h-24 rounded-full border-4 border-white bg-white shadow-md overflow-hidden flex items-center justify-center">
+                        <div className="w-24 h-24 rounded-full border-4 shadow-md overflow-hidden flex items-center justify-center"
+                            style={{ borderColor: colors.surface, backgroundColor: colors.bgSecondary }}>
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt={user.username} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-400">
+                                <div className="w-full h-full flex items-center justify-center text-3xl font-bold"
+                                    style={{ color: colors.textTertiary }}>
                                     {user.username?.charAt(0).toUpperCase()}
                                 </div>
                             )}
@@ -158,7 +166,7 @@ export default function UserProfile({ user, onBack }) {
                         {/* Edit Avatar Overlay */}
                         {isOwnProfile && (
                             <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity text-white text-xs font-bold">
-                                Cambiar
+                                <Icons.Camera size={24} />
                                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                             </label>
                         )}
@@ -170,32 +178,32 @@ export default function UserProfile({ user, onBack }) {
                     </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-gray-900">@{user.username}</h2>
-                <p className="text-gray-600 text-sm mt-1">{user.bio || "Sin biografía aún."}</p>
+                <h2 className="text-2xl font-bold" style={{ color: colors.text }}>@{user.username}</h2>
+                <p className="text-sm mt-1" style={{ color: colors.textSecondary }}>{user.bio || "Sin biografía aún."}</p>
 
                 {/* Stats */}
-                <div className="flex space-x-6 mt-4 border-t border-b py-3 border-gray-100">
+                <div className="flex space-x-6 mt-4 border-t border-b py-3" style={{ borderColor: colors.border }}>
                     <div className="text-center">
-                        <span className="block font-bold text-gray-900">{posts.length}</span>
-                        <span className="text-xs text-gray-500">Posts</span>
+                        <span className="block font-bold" style={{ color: colors.text }}>{posts.length}</span>
+                        <span className="text-xs" style={{ color: colors.textSecondary }}>Posts</span>
                     </div>
                     <div className="text-center">
-                        <span className="block font-bold text-gray-900">{stats.followers}</span>
-                        <span className="text-xs text-gray-500">Seguidores</span>
+                        <span className="block font-bold" style={{ color: colors.text }}>{stats.followers}</span>
+                        <span className="text-xs" style={{ color: colors.textSecondary }}>Seguidores</span>
                     </div>
                     <div className="text-center">
-                        <span className="block font-bold text-gray-900">{stats.following}</span>
-                        <span className="text-xs text-gray-500">Siguiendo</span>
+                        <span className="block font-bold" style={{ color: colors.text }}>{stats.following}</span>
+                        <span className="text-xs" style={{ color: colors.textSecondary }}>Siguiendo</span>
                     </div>
                 </div>
 
                 {/* Posts Grid */}
-                <h3 className="text-lg font-bold mt-6 mb-3">Publicaciones</h3>
+                <h3 className="text-lg font-bold mt-6 mb-3" style={{ color: colors.text }}>Publicaciones</h3>
 
-                {loading && <div className="text-center py-4 text-gray-500">Cargando...</div>}
+                {loading && <div className="text-center py-4" style={{ color: colors.textSecondary }}>Cargando...</div>}
 
                 {!loading && posts.length === 0 && (
-                    <div className="text-center py-8 bg-gray-50 rounded-lg text-gray-500">
+                    <div className="text-center py-8 rounded-lg" style={{ backgroundColor: colors.bgSecondary, color: colors.textSecondary }}>
                         No hay publicaciones aún.
                     </div>
                 )}
@@ -204,13 +212,15 @@ export default function UserProfile({ user, onBack }) {
                     {posts.map(p => (
                         <div
                             key={p.id}
-                            className="aspect-square bg-gray-100 relative overflow-hidden group cursor-pointer hover:opacity-90 transition"
+                            className="aspect-square relative overflow-hidden group cursor-pointer hover:opacity-90 transition"
+                            style={{ backgroundColor: colors.bgSecondary }}
                             onClick={() => p.imageUrl && setSelectedImage(p.imageUrl)}
                         >
                             {p.imageUrl ? (
                                 <img src={p.imageUrl} alt="Post" className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center p-2 text-xs text-gray-400 text-center border">
+                                <div className="w-full h-full flex items-center justify-center p-2 text-xs text-center border"
+                                    style={{ color: colors.textTertiary, borderColor: colors.border }}>
                                     {p.content}
                                 </div>
                             )}

@@ -4,10 +4,13 @@ import { onCreateNotification, deleteNotification } from "../graphql/subscriptio
 import { deleteNotification as deleteNotificationMutation, updateNotification } from "../graphql/mutations";
 import { getCurrentUser } from "aws-amplify/auth";
 import { getUrl } from "@aws-amplify/storage";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function Notifications({ onPostClick, onUserClick }) {
+    const { colors } = useTheme();
     const [notifications, setNotifications] = useState([]);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -148,13 +151,17 @@ export default function Notifications({ onPostClick, onUserClick }) {
     }
 
     if (loading && notifications.length === 0) {
-        return <div className="text-center py-10 text-gray-500">Cargando notificaciones...</div>;
+        return <div className="text-center py-10" style={{ color: colors.textSecondary }}>Cargando notificaciones...</div>;
     }
 
     if (notifications.length === 0) {
         return (
-            <div className="text-center py-10 text-gray-500 bg-gray-50 rounded-xl">
-                <p>No tienes notificaciones nuevas.</p>
+            <div className="text-center py-12 rounded-xl border border-dashed" style={{ borderColor: colors.border }}>
+                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icons.Bell size={32} className="text-slate-400" />
+                </div>
+                <h3 className="font-bold mb-1" style={{ color: colors.text }}>Sin notificaciones</h3>
+                <p className="text-sm" style={{ color: colors.textSecondary }}>Te avisaremos cuando haya actividad.</p>
             </div>
         );
     }
@@ -165,34 +172,55 @@ export default function Notifications({ onPostClick, onUserClick }) {
                 <div
                     key={n.id}
                     onClick={() => handleNotificationClick(n)}
-                    className={`bg-white border-l-4 ${n.type === 'LIKE' ? 'border-red-400' : n.type === 'COMMENT' ? 'border-blue-400' : 'border-green-400'} p-4 rounded shadow-sm hover:shadow-md transition flex items-start justify-between cursor-pointer ${!n.isRead ? 'bg-blue-50' : ''}`}
+                    className={`p-4 rounded-xl transition-all flex items-start justify-between cursor-pointer group relative overflow-hidden ${!n.isRead ? 'bg-violet-50 dark:bg-violet-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                    style={{ borderBottom: `1px solid ${colors.border}` }}
                 >
-                    <div className="flex items-center space-x-3">
+                    {/* Unread Indicator */}
+                    {!n.isRead && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-violet-500"></div>
+                    )}
+
+                    <div className="flex items-center space-x-4">
                         {/* Icon based on type */}
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${n.type === 'LIKE' ? 'bg-red-100 text-red-500' : n.type === 'COMMENT' ? 'bg-blue-100 text-blue-500' : 'bg-green-100 text-green-500'}`}>
-                            {n.sender?.avatarUrl ? (
-                                <img src={n.sender.avatarUrl} alt={n.sender.username} className="w-full h-full rounded-full object-cover" />
-                            ) : (
-                                n.type === 'LIKE' ? '❤️' : n.type === 'COMMENT' ? '💬' : '👤'
-                            )}
+                        <div className="relative">
+                            <div className="w-12 h-12 rounded-full overflow-hidden" style={{ backgroundColor: colors.bgSecondary }}>
+                                {n.sender?.avatarUrl ? (
+                                    <img src={n.sender.avatarUrl} alt={n.sender.username} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center font-bold text-lg" style={{ color: colors.textSecondary }}>
+                                        {n.sender?.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 ${n.type === 'LIKE' ? 'bg-red-500' : n.type === 'COMMENT' ? 'bg-blue-500' : 'bg-violet-500'}`}>
+                                {n.type === 'LIKE' ? <Icons.Heart size={12} className="text-white fill-current" /> : n.type === 'COMMENT' ? <Icons.MessageCircle size={12} className="text-white" /> : <Icons.User size={12} className="text-white" />}
+                            </div>
                         </div>
 
                         <div>
-                            <p className="text-gray-800 text-sm">
-                                <span className="font-bold">@{n.sender?.username || "Usuario"}</span> {n.content}
+                            <p className="text-sm" style={{ color: colors.text }}>
+                                <span className="font-bold">@{n.sender?.username || "Usuario"}</span>
+                                <span className="ml-1">
+                                    {n.type === 'LIKE' && "le gustó tu publicación"}
+                                    {n.type === 'COMMENT' && "comentó en tu publicación"}
+                                    {n.type === 'FOLLOW' && "comenzó a seguirte"}
+                                </span>
                             </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                {new Date(n.createdAt).toLocaleString()}
+                            {n.content && n.type === 'COMMENT' && (
+                                <p className="text-sm mt-1 line-clamp-2" style={{ color: colors.textSecondary }}>"{n.content}"</p>
+                            )}
+                            <p className="text-xs mt-1 font-medium" style={{ color: colors.textTertiary }}>
+                                {new Date(n.createdAt).toLocaleDateString()}
                             </p>
                         </div>
                     </div>
 
                     <button
                         onClick={(e) => handleDelete(e, n.id)}
-                        className="text-gray-400 hover:text-red-500 transition p-1"
+                        className="text-slate-400 hover:text-red-500 transition p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100"
                         title="Borrar"
                     >
-                        ✕
+                        <Icons.X size={16} />
                     </button>
                 </div>
             ))}

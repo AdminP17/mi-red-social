@@ -10,10 +10,13 @@ import Comments from "./Comments";
 import FollowButton from "./FollowButton";
 import ImageModal from "./ImageModal";
 import ConfirmationModal from "./ConfirmationModal";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function Feed({ reload, onUserClick }) {
+  const { colors } = useTheme();
   const [posts, setPosts] = useState([]);
   const [viewMode, setViewMode] = useState("all");
   const [loading, setLoading] = useState(false);
@@ -128,43 +131,69 @@ export default function Feed({ reload, onUserClick }) {
   return (
     <div>
       {/* Toggle */}
-      <div className="flex space-x-4 mb-6 border-b pb-2">
+      <div className="flex space-x-1 mb-6 p-1 rounded-xl mx-4"
+        style={{ backgroundColor: colors.bgSecondary }}>
         <button
           onClick={() => setViewMode("all")}
-          className={`font-bold pb-2 px-2 transition ${viewMode === "all" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          className="flex-1 py-2 text-sm font-bold rounded-lg transition-all"
+          style={{
+            backgroundColor: viewMode === "all" ? colors.surface : 'transparent',
+            color: viewMode === "all" ? colors.primary : colors.textSecondary,
+            boxShadow: viewMode === "all" ? colors.shadow : 'none'
+          }}
         >
           Para ti
         </button>
         <button
           onClick={() => setViewMode("following")}
-          className={`font-bold pb-2 px-2 transition ${viewMode === "following" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          className="flex-1 py-2 text-sm font-bold rounded-lg transition-all"
+          style={{
+            backgroundColor: viewMode === "following" ? colors.surface : 'transparent',
+            color: viewMode === "following" ? colors.primary : colors.textSecondary,
+            boxShadow: viewMode === "following" ? colors.shadow : 'none'
+          }}
         >
           Siguiendo
         </button>
       </div>
 
-      {loading && <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}
+      {loading && (
+        <div className="flex justify-center py-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+        </div>
+      )}
 
       {posts.length === 0 && !loading && (
-        <div className="text-center py-10 text-gray-500 bg-white rounded-xl shadow-sm">
-          <p className="text-lg">No hay publicaciones aún.</p>
-          {viewMode === "following" && <p className="text-sm mt-2">¡Sigue a más personas para ver sus posts aquí!</p>}
+        <div className="text-center py-12 px-4">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+            style={{ backgroundColor: colors.bgSecondary }}>
+            <Icons.Camera size={32} className="text-slate-400" />
+          </div>
+          <h3 className="text-lg font-bold mb-2" style={{ color: colors.text }}>No hay publicaciones aún</h3>
+          <p className="text-sm" style={{ color: colors.textSecondary }}>
+            {viewMode === "following" ? "¡Sigue a más personas para ver sus posts aquí!" : "Sé el primero en compartir algo interesante."}
+          </p>
         </div>
       )}
 
       <div className="space-y-6">
         {posts.map((p) => (
-          <div key={p.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+          <div key={p.id} className="transition-all duration-200"
+            style={{ borderBottom: `1px solid ${colors.border}` }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.bgSecondary}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
 
             {/* Header */}
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+            <div className="px-4 pt-4 flex items-start justify-between">
+              <div className="flex items-start space-x-3">
                 <div
                   onClick={() => onUserClick && onUserClick(p.user)}
-                  className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg shadow-inner cursor-pointer hover:opacity-80 transition"
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-sm cursor-pointer hover:opacity-90 transition overflow-hidden"
+                  style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
                 >
                   {p.user?.avatarUrl ? (
-                    <img src={p.user.avatarUrl} alt={p.user.username} className="w-full h-full rounded-full object-cover" />
+                    <img src={p.user.avatarUrl} alt={p.user.username} className="w-full h-full object-cover" />
                   ) : (
                     p.user?.username?.charAt(0).toUpperCase() || "?"
                   )}
@@ -173,41 +202,53 @@ export default function Feed({ reload, onUserClick }) {
                   <div className="flex items-center space-x-2">
                     <p
                       onClick={() => onUserClick && onUserClick(p.user)}
-                      className="font-bold text-gray-900 cursor-pointer hover:underline"
+                      className="font-bold cursor-pointer hover:underline text-sm"
+                      style={{ color: colors.text }}
                     >
-                      @{p.user?.username || "Usuario"}
+                      {p.user?.username || "Usuario"}
                     </p>
-                    {currentUserId && p.userID !== currentUserId && (
+                    <span className="text-slate-400 text-xs">•</span>
+                    <p className="text-xs" style={{ color: colors.textSecondary }}>
+                      {new Date(p.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {currentUserId && p.userID !== currentUserId && (
+                    <div className="mt-0.5">
                       <FollowButton targetUserId={p.userID} />
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <p className="text-xs text-gray-500">{new Date(p.createdAt).toLocaleString()}</p>
-                    {currentUserId === p.userID && (
-                      <button
-                        onClick={() => setDeleteConfirm(p.id)}
-                        className="text-gray-400 hover:text-red-500 transition p-1"
-                        title="Eliminar publicación"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {currentUserId === p.userID && (
+                <button
+                  onClick={() => setDeleteConfirm(p.id)}
+                  className="p-2 rounded-full transition-colors"
+                  style={{ color: colors.textTertiary }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#FEF2F2'; // red-50
+                    e.currentTarget.style.color = '#EF4444'; // red-500
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = colors.textTertiary;
+                  }}
+                  title="Eliminar publicación"
+                >
+                  <Icons.Trash size={16} />
+                </button>
+              )}
             </div>
 
             {/* Post Content */}
-            <div className="px-4 py-2">
-              <p className="text-gray-800 mb-3">{p.content}</p>
+            <div className="px-4 py-3">
+              <p className="mb-3 text-base leading-relaxed whitespace-pre-wrap" style={{ color: colors.text }}>{p.content}</p>
               {p.imageUrl && (
-                <div className="mt-2">
+                <div className="mt-3 rounded-2xl overflow-hidden shadow-sm border" style={{ borderColor: colors.border }}>
                   <img
                     src={p.imageUrl}
                     alt="post"
-                    className="w-full object-cover max-h-[500px] rounded-lg cursor-pointer"
+                    className="w-full object-cover max-h-[500px] cursor-pointer hover:scale-[1.01] transition-transform duration-300"
                     onClick={() => setSelectedImage(p.imageUrl)}
                   />
                 </div>
@@ -215,14 +256,19 @@ export default function Feed({ reload, onUserClick }) {
             </div>
 
             {/* Actions */}
-            <div className="px-4 py-3 border-t border-gray-50 bg-gray-50/50">
-              <div className="flex items-center space-x-6">
+            <div className="px-4 pb-4">
+              <div className="flex items-center space-x-6 mb-3">
                 <LikeButton postID={p.id} />
-                <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-600 transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="font-medium">Comentar</span>
+                <button className="flex items-center space-x-2 transition group" style={{ color: colors.textSecondary }}>
+                  <div className="p-2 rounded-full group-hover:bg-violet-50 transition-colors">
+                    <Icons.MessageCircle size={20} />
+                  </div>
+                  <span className="font-medium text-sm">Comentar</span>
+                </button>
+                <button className="flex items-center space-x-2 transition group ml-auto" style={{ color: colors.textSecondary }}>
+                  <div className="p-2 rounded-full group-hover:bg-violet-50 transition-colors">
+                    <Icons.Share size={20} />
+                  </div>
                 </button>
               </div>
 

@@ -3,10 +3,13 @@ import { generateClient } from "aws-amplify/api";
 import { getCurrentUser } from "aws-amplify/auth";
 import { createFollow, deleteFollow } from "../graphql/mutations";
 import { followsByFollowerID } from "../graphql/queries";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function FollowButton({ targetUserId }) {
+  const { colors } = useTheme();
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -43,8 +46,6 @@ export default function FollowButton({ targetUserId }) {
         setFollowId(null);
       }
     } catch (err) {
-      // Suppress error overlay by not using console.error for expected operational errors if possible, 
-      // but here we want to know. However, to stop the overlay from blocking the user:
       console.log("Warning: Could not check follow status:", JSON.stringify(err, null, 2));
     }
   }
@@ -119,12 +120,22 @@ export default function FollowButton({ targetUserId }) {
         toggleFollow();
       }}
       disabled={loading}
-      className={`px-3 py-1 text-sm rounded-full font-medium transition ${isFollowing
-        ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
-        : "bg-blue-600 text-white hover:bg-blue-700"
-        }`}
+      className="flex items-center space-x-1 px-3 py-1 text-sm rounded-full font-medium transition-all"
+      style={{
+        backgroundColor: isFollowing ? colors.bgSecondary : colors.primary,
+        color: isFollowing ? colors.text : '#FFFFFF'
+      }}
+      onMouseEnter={(e) => {
+        if (!isFollowing) {
+          e.currentTarget.style.backgroundColor = colors.primaryHover;
+        }
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = isFollowing ? colors.bgSecondary : colors.primary;
+      }}
     >
-      {loading ? "..." : isFollowing ? "Siguiendo" : "Seguir"}
+      {isFollowing ? <Icons.UserCheck size={16} color={colors.text} /> : <Icons.UserPlus size={16} color="#FFFFFF" />}
+      <span>{loading ? "..." : isFollowing ? "Siguiendo" : "Seguir"}</span>
     </button>
   );
 }

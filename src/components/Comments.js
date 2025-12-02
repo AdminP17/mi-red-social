@@ -5,10 +5,13 @@ import { deleteComment, createComment } from "../graphql/mutations";
 import { getCurrentUser } from "aws-amplify/auth";
 import { getUrl } from "@aws-amplify/storage";
 import ConfirmationModal from "./ConfirmationModal";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function Comments({ postId }) {
+  const { colors } = useTheme();
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -153,34 +156,35 @@ export default function Comments({ postId }) {
       <div className="space-y-4 mb-4">
         {comments.map((c) => (
           <div key={c.id} className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+            <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center font-bold text-xs"
+              style={{ backgroundColor: colors.bgSecondary, color: colors.textSecondary }}>
               {c.user?.avatarUrl ? (
                 <img src={c.user.avatarUrl} alt={c.user.username} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-500">
-                  {c.user?.username?.charAt(0).toUpperCase() || "?"}
-                </div>
+                c.user?.username?.charAt(0).toUpperCase() || "?"
               )}
             </div>
 
-            <div className="bg-gray-100 p-3 rounded-2xl rounded-tl-none flex-grow relative group">
+            <div className="p-3 rounded-2xl rounded-tl-none flex-grow relative group transition-colors"
+              style={{ backgroundColor: colors.bgSecondary }}>
               <div className="flex justify-between items-baseline">
-                <span className="font-bold text-xs text-gray-900">
+                <span className="font-bold text-xs" style={{ color: colors.text }}>
                   @{c.user ? c.user.username : "Usuario"}
                 </span>
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px]" style={{ color: colors.textSecondary }}>
                   {new Date(c.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              <p className="text-sm text-gray-800 mt-1">{c.content}</p>
+              <p className="text-sm mt-1" style={{ color: colors.text }}>{c.content}</p>
 
               {currentUserId === c.userID && (
                 <button
                   onClick={() => handleDelete(c.id)}
-                  className="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition hover:text-red-500"
+                  style={{ color: colors.textTertiary }}
                   title="Borrar"
                 >
-                  ×
+                  <Icons.X size={14} />
                 </button>
               )}
             </div>
@@ -191,7 +195,13 @@ export default function Comments({ postId }) {
       {/* Input */}
       <div className="flex gap-2 items-center">
         <input
-          className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition"
+          className="flex-1 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-violet-100 outline-none transition"
+          style={{
+            backgroundColor: colors.bgSecondary,
+            borderColor: colors.border,
+            borderWidth: '1px',
+            color: colors.text
+          }}
           placeholder="Escribe un comentario..."
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -200,7 +210,8 @@ export default function Comments({ postId }) {
         <button
           onClick={addComment}
           disabled={loading || !text.trim()}
-          className="text-blue-600 font-semibold text-sm hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition px-2"
+          className="font-semibold text-sm hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed transition px-2"
+          style={{ color: colors.primary }}
         >
           Publicar
         </button>

@@ -1,167 +1,174 @@
-import React, { useState, useEffect } from "react";
-import { generateClient } from "@aws-amplify/api";
+import React, { useState, useRef, useEffect } from "react";
+import { generateClient } from "aws-amplify/api";
 import { uploadData, getUrl } from "@aws-amplify/storage";
-import { getCurrentUser } from "aws-amplify/auth";
-import { v4 as uuidv4 } from "uuid";
 import { createPost } from "../graphql/mutations";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function CreatePost({ user, onPostCreated }) {
   const [content, setContent] = useState("");
-  const [file, setFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const fileInputRef = useRef(null);
+  const { colors } = useTheme();
 
   useEffect(() => {
-    async function loadAvatar() {
-      if (user?.avatar) {
-        try {
-          const urlResult = await getUrl({ key: user.avatar });
-          setAvatarUrl(urlResult.url.toString());
-        } catch (e) {
-          console.warn("Error loading avatar:", e);
-        }
-      }
+    if (user?.avatar) {
+      getUrl({ key: user.avatar })
+        .then(res => setAvatarUrl(res.url.toString()))
+        .catch(err => console.error("Error loading avatar in CreatePost:", err));
+    } else {
+      setAvatarUrl(null);
     }
-    loadAvatar();
   }, [user]);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile));
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
     }
   };
 
-  async function handleCreatePost() {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!content.trim() && !image) return;
+
     setLoading(true);
-    setErrorMsg("");
-
-    // 1️⃣ Validar contenido
-    if ((!content || content.trim().length === 0) && !file) {
-      setErrorMsg("Escribe algo o sube una foto.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      // 2️⃣ Obtener usuario autenticado
-      const authUser = await getCurrentUser();
-      const userID = authUser?.userId;
-
-      if (!userID) {
-        setErrorMsg("Tu sesión no es válida. Cierra sesión y vuelve a entrar.");
-        setLoading(false);
-        return;
+      let imageKey = null;
+      if (image) {
+        const filename = `${Date.now()}-${image.name}`;
+        await uploadData({
+          key: filename,
+          data: image,
+          options: {
+            accessLevel: 'guest', // or 'protected'/'private' depending on your setup
+          }
+        }).result;
+        imageKey = filename;
       }
 
-      let mediaArray = [];
-
-      // 3️⃣ Subir archivo si existe
-      if (file) {
-        const key = `posts/${uuidv4()}-${file.name}`;
-        try {
-          await uploadData({
-            key,
-            data: file,
-          }).result;
-          mediaArray = [key];
-        } catch (uploadError) {
-          console.error("Error uploading file:", uploadError);
-          setErrorMsg("Error al subir la imagen.");
-          setLoading(false);
-          return;
-        }
-      }
-
-      // 4️⃣ Crear post
       await client.graphql({
         query: createPost,
         variables: {
           input: {
-            content: content.trim(),
-            media: mediaArray,
-            userID: userID,
-          },
-        },
+            content,
+            media: imageKey ? [imageKey] : [],
+            userID: user.userId || user.username // Fallback if userId is missing (shouldn't happen with correct user obj)
+          }
+        }
       });
 
-      // 5️⃣ Notificar a App.js para recargar el feed 🔥
-      if (onPostCreated) onPostCreated();
-
-      // Reset
       setContent("");
-      setFile(null);
-      setPreviewUrl(null);
-      setLoading(false);
-
+      setImage(null);
+      setPreview(null);
+      if (onPostCreated) onPostCreated();
     } catch (err) {
-      console.error("Error publicando post:", err);
-      setErrorMsg("Error al publicar. Inténtalo de nuevo.");
+      console.error("Error creating post:", err);
+      alert("Error al crear el post");
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="p-2">
-      <div className="flex gap-3">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex-shrink-0 flex items-center justify-center text-blue-600 font-bold overflow-hidden">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" />
-          ) : (
-            user?.username?.charAt(0).toUpperCase() || "U"
-          )}
+    <div className="rounded-2xl shadow-sm border p-4 transition-colors duration-300"
+      style={{
+        backgroundColor: colors.surface,
+        borderColor: colors.border
+      }}>
+      <div className="flex space-x-4">
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden"
+            style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" />
+            ) : (
+              user?.username?.charAt(0).toUpperCase() || "U"
+            )}
+          </div>
         </div>
-        <div className="flex-grow">
-          <textarea
-            placeholder={`¿Qué estás pensando, ${user?.username || "usuario"}?`}
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            rows={2}
-            className="w-full p-2 bg-gray-50 rounded-lg border-none focus:ring-2 focus:ring-blue-100 resize-none outline-none transition"
-          />
+        <div className="flex-1">
+          <form onSubmit={handleSubmit}>
+            <textarea
+              className="w-full bg-transparent border-none focus:ring-0 text-lg placeholder-slate-400 resize-none min-h-[80px]"
+              placeholder="¿Qué estás pensando?"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              style={{ color: colors.text }}
+            />
 
-          {previewUrl && (
-            <div className="relative mt-2 mb-2">
-              <img src={previewUrl} alt="Preview" className="w-full max-h-60 object-cover rounded-lg" />
+            {preview && (
+              <div className="relative mt-2 mb-4 rounded-xl overflow-hidden group">
+                <img src={preview} alt="Preview" className="w-full max-h-64 object-cover rounded-xl" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImage(null);
+                    setPreview(null);
+                  }}
+                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <Icons.X size={16} />
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between mt-2 pt-3 border-t"
+              style={{ borderColor: colors.border }}>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 rounded-full transition-colors flex items-center space-x-2"
+                  style={{ color: colors.primary }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryLight}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  title="Añadir imagen"
+                >
+                  <Icons.Image size={20} />
+                  <span className="text-sm font-medium hidden sm:inline">Foto</span>
+                </button>
+                {/* Placeholder for other attachments */}
+                <button
+                  type="button"
+                  className="p-2 rounded-full transition-colors"
+                  style={{ color: colors.primary }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.primaryLight}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  title="Añadir GIF"
+                >
+                  <span className="text-xs font-bold border border-current rounded px-1">GIF</span>
+                </button>
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+                accept="image/*"
+                className="hidden"
+              />
+
               <button
-                onClick={() => { setFile(null); setPreviewUrl(null); }}
-                className="absolute top-2 right-2 bg-gray-800 bg-opacity-70 text-white rounded-full p-1 hover:bg-opacity-90"
+                type="submit"
+                disabled={(!content.trim() && !image) || loading}
+                className="px-6 py-2 rounded-full font-bold text-white shadow-md transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
+                style={{ backgroundColor: colors.primary }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  "Publicar"
+                )}
               </button>
             </div>
-          )}
-
-          {errorMsg && (
-            <p className="text-red-500 text-sm mt-1">{errorMsg}</p>
-          )}
-
-          <div className="flex justify-between items-center mt-3">
-            <label className="cursor-pointer text-blue-500 hover:bg-blue-50 p-2 rounded-full transition">
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </label>
-
-            <button
-              onClick={handleCreatePost}
-              disabled={loading || (!content.trim() && !file)}
-              className={`px-6 py-2 rounded-full font-semibold text-white transition shadow-sm
-                ${loading || (!content.trim() && !file)
-                  ? "bg-blue-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"}`}
-            >
-              {loading ? "Publicando..." : "Publicar"}
-            </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

@@ -19,6 +19,8 @@ import {
 } from "../graphql/queries";
 import { onCreateNotification, onUpdateNotification } from "../graphql/subscriptions";
 import ConfirmationModal from "./ConfirmationModal";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
@@ -29,10 +31,13 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
+    const { colors, theme, toggleTheme } = useTheme();
+
     const menuItems = [
-        { id: "home", icon: "🏠", label: "Inicio", badge: 0 },
-        { id: "notifications", icon: "🔔", label: "Notificaciones", badge: unreadCount },
-        { id: "profile", icon: "👤", label: "Perfil", badge: 0 }
+        { id: "home", icon: Icons.Home, label: "Inicio", badge: 0 },
+        { id: "notifications", icon: Icons.Bell, label: "Notificaciones", badge: unreadCount },
+        { id: "messages", icon: Icons.MessageCircle, label: "Mensajes", badge: 0 },
+        { id: "profile", icon: Icons.User, label: "Perfil", badge: 0 }
     ];
 
     useEffect(() => {
@@ -51,11 +56,6 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
 
         const fetchUnread = async () => {
             try {
-                // In a real app, we would filter by isRead: false
-                // But for now, let's just count all notifications as a demo or assume we want to show total count
-                // Or better, let's filter client side if API doesn't support complex filter on non-indexed field easily without setup
-                // Schema has isRead, but we might not have an index on it combined with receiverID.
-                // Let's just fetch latest 100 and count unread.
                 const res = await client.graphql({
                     query: notificationsByReceiverID,
                     variables: {
@@ -90,7 +90,6 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
         });
 
         // Update subscription (for mark as read)
-        // Note: We need to import onUpdateNotification
         const updateSub = client.graphql({
             query: onUpdateNotification,
             variables: { filter: { receiverID: { eq: user.userId } } }
@@ -175,27 +174,64 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
     };
 
     return (
-        <div className="w-64 bg-white h-screen sticky top-0 border-r border-gray-200 flex flex-col p-4 hidden md:flex">
+        <div className="w-72 h-screen sticky top-0 flex flex-col p-6 hidden md:flex transition-colors duration-300"
+            style={{
+                backgroundColor: colors.surface,
+                borderRight: `1px solid ${colors.border}`
+            }}>
             {/* Logo */}
-            <div className="mb-8 px-4">
-                <h1 className="text-3xl font-bold text-blue-600">P17</h1>
+            <div className="mb-10 px-2 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-lg">
+                        P
+                    </div>
+                    <h1 className="text-2xl font-bold tracking-tight" style={{ color: colors.text }}>Social</h1>
+                </div>
+
+                {/* Theme Toggle */}
+                <button
+                    onClick={toggleTheme}
+                    className="p-2 rounded-xl transition-all hover:scale-105 active:scale-95"
+                    style={{ backgroundColor: colors.bgSecondary }}
+                    title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+                >
+                    {theme === 'light' ? <Icons.Moon size={18} color={colors.textSecondary} /> : <Icons.Sun size={18} color={colors.textSecondary} />}
+                </button>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 space-y-2 relative">
+            <nav className="flex-1 space-y-3">
                 {menuItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => onTabChange(item.id)}
-                        className={`w-full flex items-center space-x-4 px-4 py-3 rounded-full text-xl transition-colors relative ${activeTab === item.id
-                            ? "font-bold text-gray-900"
-                            : "text-gray-700 hover:bg-gray-100"
-                            }`}
+                        className="w-full flex items-center space-x-4 px-4 py-3.5 rounded-2xl text-base font-medium transition-all duration-200 relative group"
+                        style={{
+                            backgroundColor: activeTab === item.id ? colors.primaryLight : 'transparent',
+                            color: activeTab === item.id ? colors.primary : colors.textSecondary,
+                        }}
+                        onMouseEnter={(e) => {
+                            if (activeTab !== item.id) {
+                                e.currentTarget.style.backgroundColor = colors.bgSecondary;
+                                e.currentTarget.style.color = colors.text;
+                            }
+                        }}
+                        onMouseLeave={(e) => {
+                            if (activeTab !== item.id) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                                e.currentTarget.style.color = colors.textSecondary;
+                            }
+                        }}
                     >
-                        <span>{item.icon}</span>
+                        <item.icon
+                            size={24}
+                            weight={activeTab === item.id ? "fill" : "regular"}
+                            color={activeTab === item.id ? colors.primary : "currentColor"}
+                        />
                         <span>{item.label}</span>
                         {item.badge > 0 && (
-                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full absolute left-8 top-2 border-2 border-white">
+                            <span className="flex items-center justify-center min-w-[20px] h-5 text-white text-xs font-bold px-1.5 rounded-full absolute right-4 shadow-sm"
+                                style={{ backgroundColor: colors.error }}>
                                 {item.badge > 99 ? "99+" : item.badge}
                             </span>
                         )}
@@ -205,21 +241,34 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
                 <div className="relative">
                     <button
                         onClick={() => setShowMoreMenu(!showMoreMenu)}
-                        className="w-full flex items-center space-x-4 px-4 py-3 rounded-full text-xl text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="w-full flex items-center space-x-4 px-4 py-3.5 rounded-2xl text-base font-medium transition-all duration-200"
+                        style={{ color: colors.textSecondary }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = colors.bgSecondary;
+                            e.currentTarget.style.color = colors.text;
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.color = colors.textSecondary;
+                        }}
                     >
-                        <span>⭕</span>
+                        <Icons.Settings size={24} color="currentColor" />
                         <span>Más</span>
                     </button>
 
                     {/* More Menu Dropdown */}
                     {showMoreMenu && (
-                        <div className="absolute bottom-full left-0 w-full bg-white shadow-xl rounded-xl border border-gray-100 p-2 mb-2 z-50">
+                        <div className="absolute bottom-full left-0 w-full shadow-xl shadow-slate-200/50 dark:shadow-black/50 rounded-2xl p-2 mb-2 z-50 backdrop-blur-xl border"
+                            style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
                             <button
                                 onClick={handleDeleteAccount}
                                 disabled={isDeleting}
-                                className="w-full text-left px-4 py-3 text-red-600 font-bold hover:bg-red-50 rounded-lg transition-colors flex items-center space-x-2 disabled:opacity-50"
+                                className="w-full text-left px-4 py-3 font-medium rounded-xl transition-colors flex items-center space-x-3 disabled:opacity-50"
+                                style={{ color: colors.error }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = `${colors.error}15`}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
-                                <span>{isDeleting ? "⏳" : "🗑️"}</span>
+                                {isDeleting ? <span>⏳</span> : <Icons.Trash size={20} color={colors.error} />}
                                 <span>{isDeleting ? "Eliminando..." : "Eliminar cuenta"}</span>
                             </button>
                         </div>
@@ -228,12 +277,14 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
             </nav>
 
             {/* User & Sign Out */}
-            <div className="mt-auto pt-4 border-t border-gray-100">
+            <div className="mt-auto pt-6 border-t" style={{ borderColor: colors.border }}>
                 <div
                     onClick={() => onTabChange("profile")}
-                    className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 rounded-full cursor-pointer transition-colors mb-2"
+                    className="flex items-center space-x-3 p-3 rounded-2xl cursor-pointer transition-all hover:shadow-md group"
+                    style={{ backgroundColor: colors.bgSecondary }}
                 >
-                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold text-gray-600 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden ring-2 ring-offset-2 transition-all group-hover:scale-105"
+                        style={{ backgroundColor: colors.primaryLight, color: colors.primary, ringColor: colors.primary }}>
                         {avatarUrl ? (
                             <img src={avatarUrl} alt={user?.username} className="w-full h-full object-cover" />
                         ) : (
@@ -241,14 +292,18 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
                         )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm truncate">{user?.username}</p>
-                        <p className="text-gray-500 text-xs truncate">@{user?.username}</p>
+                        <p className="font-bold text-sm truncate" style={{ color: colors.text }}>{user?.username}</p>
+                        <p className="text-xs truncate" style={{ color: colors.textSecondary }}>@{user?.username}</p>
+                    </div>
+                    <div className="text-gray-400">
+                        <Icons.MoreHorizontal size={16} />
                     </div>
                 </div>
 
                 <button
                     onClick={onSignOut}
-                    className="w-full text-left px-4 py-2 text-red-600 font-medium hover:bg-red-50 rounded-lg transition-colors"
+                    className="w-full mt-3 text-center py-2 text-sm font-medium rounded-xl transition-all opacity-70 hover:opacity-100"
+                    style={{ color: colors.textTertiary }}
                 >
                     Cerrar sesión
                 </button>

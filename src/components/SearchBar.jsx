@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/api";
 import { listUserProfiles } from "../graphql/queries";
 import FollowButton from "./FollowButton";
+import { useTheme } from "../context/ThemeContext";
 
 const client = generateClient();
 
 export default function SearchBar({ onSelectUser, currentUser }) {
+  const { colors } = useTheme();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -61,7 +63,13 @@ export default function SearchBar({ onSelectUser, currentUser }) {
         <input
           type="text"
           placeholder="Buscar personas..."
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
+          className="block w-full pl-10 pr-3 py-2 rounded-lg leading-5 transition duration-150 ease-in-out focus:outline-none focus:ring-2"
+          style={{
+            backgroundColor: colors.surface,
+            color: colors.text,
+            border: `1px solid ${colors.border}`,
+            focusRingColor: colors.primary
+          }}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -74,12 +82,15 @@ export default function SearchBar({ onSelectUser, currentUser }) {
 
       {/* Resultados */}
       {query && (
-        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md py-1 ring-1 ring-black ring-opacity-5 overflow-auto max-h-60">
+        <div className="absolute z-10 mt-1 w-full shadow-lg rounded-md py-1 ring-1 ring-opacity-5 overflow-auto max-h-60" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
           {results.length > 0 ? (
             results.map((u) => (
               <div
                 key={u.id}
-                className="flex justify-between items-center px-4 py-2 hover:bg-gray-50 transition"
+                className="flex justify-between items-center px-4 py-2 transition"
+                style={{ backgroundColor: 'transparent' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.bgSecondary}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <button
                   onClick={() => {
@@ -89,17 +100,17 @@ export default function SearchBar({ onSelectUser, currentUser }) {
                   }}
                   className="flex items-center space-x-3 flex-grow text-left"
                 >
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                  <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
                     {u.username.charAt(0).toUpperCase()}
                   </div>
-                  <div className="text-sm font-medium text-gray-900">@{u.username}</div>
+                  <div className="text-sm font-medium" style={{ color: colors.text }}>@{u.username}</div>
                 </button>
                 {u.id && <FollowButton targetUserId={u.id} />}
               </div>
             ))
           ) : (
             !searching && (
-              <div className="px-4 py-2 text-sm text-gray-500">
+              <div className="px-4 py-2 text-sm" style={{ color: colors.textSecondary }}>
                 No se encontraron usuarios.
               </div>
             )

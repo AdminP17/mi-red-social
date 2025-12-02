@@ -9,10 +9,13 @@ import FollowButton from "./FollowButton";
 import ImageModal from "./ImageModal";
 import ConfirmationModal from "./ConfirmationModal";
 import { deletePost } from "../graphql/mutations";
+import { useTheme } from "../context/ThemeContext";
+import { Icons } from "./Icons";
 
 const client = generateClient();
 
 export default function PostDetail({ postId, onBack, onUserClick }) {
+    const { colors } = useTheme();
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState(null);
@@ -83,28 +86,41 @@ export default function PostDetail({ postId, onBack, onUserClick }) {
         }
     }
 
-    if (loading) return <div className="text-center py-10">Cargando...</div>;
-    if (!post) return <div className="text-center py-10">Post no encontrado.</div>;
+    if (loading) return (
+        <div className="flex justify-center py-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600"></div>
+        </div>
+    );
+
+    if (!post) return (
+        <div className="text-center py-10" style={{ color: colors.text }}>
+            Post no encontrado.
+        </div>
+    );
 
     return (
         <div>
             <button
                 onClick={onBack}
-                className="mb-4 text-blue-600 font-bold hover:underline flex items-center"
+                className="mb-4 font-bold hover:underline flex items-center transition-colors"
+                style={{ color: colors.primary }}
             >
-                ← Volver
+                <Icons.ArrowLeft size={20} className="mr-1" />
+                Volver
             </button>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="rounded-xl shadow-sm border overflow-hidden transition-colors duration-300"
+                style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
                 {/* Header */}
                 <div className="p-4 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <div
                             onClick={() => onUserClick && onUserClick(post.user)}
-                            className="w-10 h-10 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-lg shadow-inner cursor-pointer hover:opacity-80 transition"
+                            className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-inner cursor-pointer hover:opacity-80 transition overflow-hidden"
+                            style={{ backgroundColor: colors.primaryLight, color: colors.primary }}
                         >
                             {post.user?.avatarUrl ? (
-                                <img src={post.user.avatarUrl} alt={post.user.username} className="w-full h-full rounded-full object-cover" />
+                                <img src={post.user.avatarUrl} alt={post.user.username} className="w-full h-full object-cover" />
                             ) : (
                                 post.user?.username?.charAt(0).toUpperCase() || "?"
                             )}
@@ -113,7 +129,8 @@ export default function PostDetail({ postId, onBack, onUserClick }) {
                             <div className="flex items-center space-x-2">
                                 <p
                                     onClick={() => onUserClick && onUserClick(post.user)}
-                                    className="font-bold text-gray-900 cursor-pointer hover:underline"
+                                    className="font-bold cursor-pointer hover:underline"
+                                    style={{ color: colors.text }}
                                 >
                                     @{post.user?.username || "Usuario"}
                                 </p>
@@ -122,16 +139,15 @@ export default function PostDetail({ postId, onBack, onUserClick }) {
                                 )}
                             </div>
                             <div className="flex items-center space-x-2">
-                                <p className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleString()}</p>
+                                <p className="text-xs" style={{ color: colors.textSecondary }}>{new Date(post.createdAt).toLocaleString()}</p>
                                 {currentUserId === post.userID && (
                                     <button
                                         onClick={() => setDeleteConfirm(post.id)}
-                                        className="text-gray-400 hover:text-red-500 transition p-1"
+                                        className="transition p-1 hover:bg-red-50 rounded-full"
+                                        style={{ color: colors.textTertiary }}
                                         title="Eliminar publicación"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
+                                        <Icons.Trash size={18} />
                                     </button>
                                 )}
                             </div>
@@ -141,13 +157,13 @@ export default function PostDetail({ postId, onBack, onUserClick }) {
 
                 {/* Post Content */}
                 <div className="px-4 py-2">
-                    <p className="text-gray-800 mb-3">{post.content}</p>
+                    <p className="mb-3 text-base leading-relaxed whitespace-pre-wrap" style={{ color: colors.text }}>{post.content}</p>
                     {post.imageUrl && (
-                        <div className="mt-2">
+                        <div className="mt-2 rounded-lg overflow-hidden border" style={{ borderColor: colors.border }}>
                             <img
                                 src={post.imageUrl}
                                 alt="post"
-                                className="w-full object-cover max-h-[500px] rounded-lg cursor-pointer"
+                                className="w-full object-cover max-h-[500px] cursor-pointer hover:scale-[1.01] transition-transform duration-300"
                                 onClick={() => setSelectedImage(post.imageUrl)}
                             />
                         </div>
@@ -155,13 +171,13 @@ export default function PostDetail({ postId, onBack, onUserClick }) {
                 </div>
 
                 {/* Actions */}
-                <div className="px-4 py-3 border-t border-gray-50 bg-gray-50/50">
-                    <div className="flex items-center space-x-6">
+                <div className="px-4 py-3 border-t" style={{ borderColor: colors.border, backgroundColor: colors.bgSecondary }}>
+                    <div className="flex items-center space-x-6 mb-4">
                         <LikeButton postID={post.id} />
-                        <button className="flex items-center space-x-1 text-gray-500 hover:text-blue-600 transition">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
+                        <button className="flex items-center space-x-2 transition group" style={{ color: colors.textSecondary }}>
+                            <div className="p-2 rounded-full group-hover:bg-violet-50 transition-colors">
+                                <Icons.MessageCircle size={22} />
+                            </div>
                             <span className="font-medium">Comentar</span>
                         </button>
                     </div>
