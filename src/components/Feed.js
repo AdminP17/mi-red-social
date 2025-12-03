@@ -312,7 +312,7 @@ export default function Feed({ reload, onUserClick }) {
                 </button>
               </div>
 
-              <Comments postId={p.id} />
+              <Comments postId={p.id} onUserClick={onUserClick} />
             </div>
           </div>
         ))}

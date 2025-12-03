@@ -182,7 +182,7 @@ export default function PostDetail({ postId, onBack, onUserClick }) {
                         </button>
                     </div>
 
-                    <Comments postId={post.id} />
+                    <Comments postId={post.id} onUserClick={onUserClick} />
                 </div>
             </div>
 

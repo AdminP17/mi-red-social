@@ -10,7 +10,7 @@ import { Icons } from "./Icons";
 
 const client = generateClient();
 
-export default function Comments({ postId }) {
+export default function Comments({ postId, onUserClick }) {
   const { colors } = useTheme();
   const [comments, setComments] = useState([]);
   const [text, setText] = useState("");
@@ -249,8 +249,11 @@ export default function Comments({ postId }) {
       <div className="space-y-4 mb-4">
         {comments.map((c) => (
           <div key={c.id} className="flex gap-3">
-            <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center font-bold text-xs"
-              style={{ backgroundColor: colors.bgSecondary, color: colors.textSecondary }}>
+            <div
+              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center font-bold text-xs cursor-pointer hover:opacity-80 transition"
+              style={{ backgroundColor: colors.bgSecondary, color: colors.textSecondary }}
+              onClick={() => onUserClick && c.user && onUserClick(c.user)}
+            >
               {c.user?.avatarUrl ? (
                 <img src={c.user.avatarUrl} alt={c.user.username} className="w-full h-full object-cover" />
               ) : (
@@ -261,7 +264,11 @@ export default function Comments({ postId }) {
             <div className="p-3 rounded-2xl rounded-tl-none flex-grow relative group transition-colors"
               style={{ backgroundColor: colors.bgSecondary }}>
               <div className="flex justify-between items-baseline">
-                <span className="font-bold text-xs" style={{ color: colors.text }}>
+                <span
+                  className="font-bold text-xs cursor-pointer hover:underline"
+                  style={{ color: colors.text }}
+                  onClick={() => onUserClick && c.user && onUserClick(c.user)}
+                >
                   @{c.user ? c.user.username : "Usuario"}
                 </span>
                 <span className="text-[10px]" style={{ color: colors.textSecondary }}>
