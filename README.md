@@ -1,71 +1,101 @@
-A
-# Getting Started with Create React App
+# Red Social
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-featured, modern social media application built with **React**, **Tailwind CSS**, and **AWS Amplify**. This project demonstrates a scalable serverless architecture with real-time capabilities, including a social feed, user profiles, messaging, and notifications.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+### 👤 User Experience
+- **Authentication**: Secure Sign Up, Sign In, and Forgot Password flows powered by AWS Cognito.
+- **User Profiles**: Customizable profiles with avatars, cover images, and bios.
+- **Dark Mode**: Fully responsive dark theme support for all interfaces.
 
-### `npm start`
+### 📱 Social Interactions
+- **Dynamic Feed**: Create and view posts with rich text and image support.
+- **Engagement**: Like and comment on posts in real-time.
+- **Social Graph**: Follow and unfollow users to curate your feed.
+- **Search**: Find other users to connect with.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 💬 Communication
+- **Real-time Chat**: Private messaging system between users.
+- **Notifications**: Instant alerts for new followers, likes, and comments.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Tech Stack
 
-### `npm test`
+### Frontend
+- **React** (v18): Component-based UI library.
+- **Tailwind CSS**: Utility-first CSS framework for rapid styling.
+- **AWS Amplify UI**: Pre-built UI components for authentication and interactions.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Backend (Serverless)
+- **AWS Amplify**: Development platform for building secure, scalable mobile and web apps.
+- **AWS AppSync**: Managed GraphQL service for the API.
+- **Amazon DynamoDB**: NoSQL database for data persistence.
+- **Amazon Cognito**: Identity management for authentication.
+- **Amazon S3**: Object storage for user uploaded media (images).
 
-### `npm run build`
+## 📦 Prerequisites
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Before you begin, ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (v14.x or later)
+- [npm](https://www.npmjs.com/) (v6.x or later)
+- [Amplify CLI](https://docs.amplify.aws/cli/start/install) (`npm install -g @aws-amplify/cli`)
+- An active [AWS Account](https://aws.amazon.com/)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🔧 Installation & Setup
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/red-social.git
+   cd red-social
+   ```
 
-### `npm run eject`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. **Initialize Amplify**
+   Pull the backend configuration from AWS (if you have the Amplify App ID) or initialize a new environment.
+   ```bash
+   amplify pull
+   # OR
+   amplify init
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. **Run the application**
+   Start the local development server.
+   ```bash
+   npm start
+   ```
+   The app will run at `http://localhost:3000`.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 📂 Project Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+red-social/
+├── amplify/              # AWS Amplify backend configuration (Auth, API, Storage)
+├── public/               # Static assets
+├── src/
+│   ├── components/       # Reusable UI components (Feed, Sidebar, Chat, etc.)
+│   ├── context/          # React Context for global state management
+│   ├── graphql/          # Auto-generated GraphQL queries, mutations, and subscriptions
+│   ├── services/         # Helper services and utilities
+│   ├── App.js            # Main application component
+│   └── index.js          # Application entry point
+├── package.json          # Project dependencies and scripts
+└── README.md             # Project documentation
+```
 
-## Learn More
+## 📜 Scripts
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- `npm start`: Runs the app in development mode.
+- `npm test`: Launches the test runner.
+- `npm run build`: Builds the app for production to the `build` folder.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🤝 Contributing
 
-### Code Splitting
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 📄 License
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This project is open source and available under the [MIT License](LICENSE).
