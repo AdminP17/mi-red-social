@@ -11,6 +11,7 @@ export const createUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -60,6 +61,7 @@ export const updateUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -109,6 +111,7 @@ export const deleteUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -160,7 +163,17 @@ export const createPost = /* GraphQL */ `
       media
       createdAt
       updatedAt
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       comments {
         nextToken
         __typename
@@ -190,7 +203,17 @@ export const updatePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       comments {
         nextToken
         __typename
@@ -220,7 +243,17 @@ export const deletePost = /* GraphQL */ `
       media
       createdAt
       updatedAt
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       comments {
         nextToken
         __typename
@@ -259,7 +292,17 @@ export const createComment = /* GraphQL */ `
         owner
         __typename
       }
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       updatedAt
       owner
       __typename
@@ -287,7 +330,17 @@ export const updateComment = /* GraphQL */ `
         owner
         __typename
       }
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       updatedAt
       owner
       __typename
@@ -315,7 +368,17 @@ export const deleteComment = /* GraphQL */ `
         owner
         __typename
       }
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       updatedAt
       owner
       __typename
@@ -341,7 +404,17 @@ export const createLike = /* GraphQL */ `
         owner
         __typename
       }
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -368,7 +441,17 @@ export const updateLike = /* GraphQL */ `
         owner
         __typename
       }
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -395,7 +478,17 @@ export const deleteLike = /* GraphQL */ `
         owner
         __typename
       }
-
+      user {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -412,8 +505,28 @@ export const createFollow = /* GraphQL */ `
       id
       followerID
       followedID
-
-
+      follower {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -430,8 +543,28 @@ export const updateFollow = /* GraphQL */ `
       id
       followerID
       followedID
-
-
+      follower {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -448,8 +581,28 @@ export const deleteFollow = /* GraphQL */ `
       id
       followerID
       followedID
-
-
+      follower {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
+      followed {
+        id
+        username
+        bio
+        avatar
+        coverImage
+        createdAt
+        updatedAt
+        owner
+        __typename
+      }
       createdAt
       updatedAt
       owner
@@ -475,6 +628,7 @@ export const createNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -485,6 +639,7 @@ export const createNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -525,6 +680,7 @@ export const updateNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -535,6 +691,7 @@ export const updateNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -575,6 +732,7 @@ export const deleteNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -585,6 +743,7 @@ export const deleteNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -679,6 +838,7 @@ export const createMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -714,6 +874,7 @@ export const updateMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -749,6 +910,7 @@ export const deleteMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner

@@ -8,6 +8,7 @@ export const getUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -59,6 +60,7 @@ export const listUserProfiles = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -84,6 +86,7 @@ export const getNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -94,6 +97,7 @@ export const getNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -189,6 +193,7 @@ export const getMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -406,6 +411,7 @@ export const getPost = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -442,11 +448,6 @@ export const listPosts = /* GraphQL */ `
         media
         createdAt
         updatedAt
-        user {
-          id
-          username
-          avatar
-        }
         owner
         __typename
       }
@@ -508,6 +509,7 @@ export const getComment = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -533,11 +535,6 @@ export const listComments = /* GraphQL */ `
         content
         createdAt
         updatedAt
-        user {
-          id
-          username
-          avatar
-        }
         owner
         __typename
       }
@@ -627,6 +624,7 @@ export const getLike = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -729,6 +727,7 @@ export const getFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -739,6 +738,7 @@ export const getFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner

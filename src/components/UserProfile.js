@@ -19,15 +19,16 @@ export default function UserProfile({ user, onBack, onMessage }) {
     const [stats, setStats] = useState({ followers: 0, following: 0 });
     const [currentUser, setCurrentUser] = useState(null);
     const [avatarUrl, setAvatarUrl] = useState(null);
+    const [coverUrl, setCoverUrl] = useState(null);
 
     // Load Current User
     useEffect(() => {
         getCurrentUser().then(u => setCurrentUser(u)).catch(console.error);
     }, []);
 
-    // Load Avatar URL if exists
+    // Load Avatar & Cover URL if exists
     useEffect(() => {
-        async function loadAvatar() {
+        async function loadImages() {
             if (user?.avatar) {
                 try {
                     const urlResult = await getUrl({ key: user.avatar });
@@ -36,8 +37,16 @@ export default function UserProfile({ user, onBack, onMessage }) {
                     console.warn("Error loading avatar:", e);
                 }
             }
+            if (user?.coverImage) {
+                try {
+                    const urlResult = await getUrl({ key: user.coverImage });
+                    setCoverUrl(urlResult.url.toString());
+                } catch (e) {
+                    console.warn("Error loading cover:", e);
+                }
+            }
         }
-        loadAvatar();
+        loadImages();
     }, [user]);
 
     // Load Posts & Stats
@@ -120,11 +129,42 @@ export default function UserProfile({ user, onBack, onMessage }) {
             // Update local state
             const urlResult = await getUrl({ key });
             setAvatarUrl(urlResult.url.toString());
-            alert("Foto de perfil actualizada!");
+            // alert("Foto de perfil actualizada!");
 
         } catch (err) {
             console.error("Error updating avatar:", err);
             alert("Error al actualizar la foto.");
+        }
+    };
+
+    // Handle Cover Upload
+    const handleCoverChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            const key = `covers/${uuidv4()}-${file.name}`;
+            await uploadData({ key, data: file }).result;
+
+            // Update User Profile
+            await client.graphql({
+                query: updateUserProfile,
+                variables: {
+                    input: {
+                        id: user.id,
+                        coverImage: key
+                    }
+                }
+            });
+
+            // Update local state
+            const urlResult = await getUrl({ key });
+            setCoverUrl(urlResult.url.toString());
+            // alert("Portada actualizada!");
+
+        } catch (err) {
+            console.error("Error updating cover:", err);
+            alert("Error al actualizar la portada.");
         }
     };
 
@@ -135,24 +175,46 @@ export default function UserProfile({ user, onBack, onMessage }) {
         <div className="shadow-md rounded-xl overflow-hidden transition-colors duration-300"
             style={{ backgroundColor: colors.surface }}>
             {/* Header / Cover */}
-            <div className="h-32 bg-gradient-to-r from-violet-400 to-fuchsia-500 relative">
+            <div className="h-32 relative group cursor-pointer" onClick={() => coverUrl && setSelectedImage(coverUrl)}>
+                {coverUrl ? (
+                    <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-r from-violet-400 to-fuchsia-500"></div>
+                )}
+
                 <button
-                    onClick={onBack}
-                    className="absolute top-4 left-4 px-3 py-1 rounded-full backdrop-blur-sm transition font-medium flex items-center"
-                    style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#FFFFFF' }}
+                    onClick={(e) => { e.stopPropagation(); onBack(); }}
+                    className="absolute top-4 left-4 px-3 py-1 rounded-full backdrop-blur-sm transition font-medium flex items-center z-10"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.3)', color: '#FFFFFF' }}
                 >
                     <Icons.ArrowLeft size={18} className="mr-1" />
                     Volver
                 </button>
+
+                {/* Edit Cover Button */}
+                {isOwnProfile && (
+                    <label
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute bottom-2 right-2 p-2 rounded-full cursor-pointer transition-all opacity-70 hover:opacity-100 hover:scale-110 z-20"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.6)', color: '#FFFFFF' }}
+                        title="Cambiar portada"
+                    >
+                        <Icons.Camera size={20} />
+                        <input type="file" accept="image/*" className="hidden" onChange={handleCoverChange} />
+                    </label>
+                )}
             </div>
 
             {/* Profile Info */}
             <div className="px-6 pb-6 relative">
                 <div className="flex justify-between items-end -mt-12 mb-4">
                     {/* Avatar */}
-                    <div className="relative group">
-                        <div className="w-24 h-24 rounded-full border-4 shadow-md overflow-hidden flex items-center justify-center"
-                            style={{ borderColor: colors.surface, backgroundColor: colors.bgSecondary }}>
+                    <div className="relative">
+                        <div
+                            className="w-24 h-24 rounded-full border-4 shadow-md overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-90 transition"
+                            style={{ borderColor: colors.surface, backgroundColor: colors.bgSecondary }}
+                            onClick={() => avatarUrl && setSelectedImage(avatarUrl)}
+                        >
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt={user.username} className="w-full h-full object-cover" />
                             ) : (
@@ -163,10 +225,15 @@ export default function UserProfile({ user, onBack, onMessage }) {
                             )}
                         </div>
 
-                        {/* Edit Avatar Overlay */}
+                        {/* Edit Avatar Button - Repositioned */}
                         {isOwnProfile && (
-                            <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity text-white text-xs font-bold">
-                                <Icons.Camera size={24} />
+                            <label
+                                onClick={(e) => e.stopPropagation()}
+                                className="absolute bottom-0 right-0 p-1.5 rounded-full cursor-pointer transition-all hover:scale-110 shadow-sm border-2"
+                                style={{ backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }}
+                                title="Cambiar foto de perfil"
+                            >
+                                <Icons.Camera size={16} />
                                 <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
                             </label>
                         )}

@@ -7,6 +7,7 @@ type UserProfile @model @auth(rules: [
   username: String
   bio: String
   avatar: String
+  coverImage: String
 
   # Relaciones inversas obligatorias
   posts: [Post] @hasMany(indexName: "byUser", fields: ["id"])

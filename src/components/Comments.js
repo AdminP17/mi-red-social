@@ -24,8 +24,32 @@ export default function Comments({ postId }) {
 
   const loadComments = useCallback(async () => {
     try {
+      // Custom query to fetch comments with user details
+      const listCommentsWithUser = /* GraphQL */ `
+        query ListComments(
+          $filter: ModelCommentFilterInput
+          $limit: Int
+        ) {
+          listComments(filter: $filter, limit: $limit) {
+            items {
+              id
+              postID
+              userID
+              content
+              createdAt
+              updatedAt
+              user {
+                id
+                username
+                avatar
+              }
+            }
+          }
+        }
+      `;
+
       const res = await client.graphql({
-        query: listComments,
+        query: listCommentsWithUser,
         variables: {
           filter: { postID: { eq: postId } },
           limit: 100,

@@ -30,9 +30,37 @@ export default function Feed({ reload, onUserClick }) {
       const user = await getCurrentUser();
       setCurrentUserId(user.userId);
 
+      // Custom query to fetch posts with user details
+      const listPostsWithUser = /* GraphQL */ `
+        query ListPosts(
+          $filter: ModelPostFilterInput
+          $limit: Int
+          $nextToken: String
+        ) {
+          listPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
+            items {
+              id
+              userID
+              content
+              media
+              createdAt
+              updatedAt
+              owner
+              user {
+                id
+                username
+                avatar
+                coverImage
+              }
+            }
+            nextToken
+          }
+        }
+      `;
+
       // 1. Fetch posts
       const res = await client.graphql({
-        query: listPosts,
+        query: listPostsWithUser,
         variables: { limit: 100 }
       });
       let allPosts = res.data.listPosts.items;

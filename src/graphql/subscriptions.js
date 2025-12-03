@@ -11,6 +11,7 @@ export const onCreateUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -60,6 +61,7 @@ export const onUpdateUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -109,6 +111,7 @@ export const onDeleteUserProfile = /* GraphQL */ `
       username
       bio
       avatar
+      coverImage
       posts {
         nextToken
         __typename
@@ -152,8 +155,13 @@ export const onCreateNotification = /* GraphQL */ `
   subscription OnCreateNotification(
     $filter: ModelSubscriptionNotificationFilterInput
     $owner: String
+    $receiverID: String
   ) {
-    onCreateNotification(filter: $filter, owner: $owner) {
+    onCreateNotification(
+      filter: $filter
+      owner: $owner
+      receiverID: $receiverID
+    ) {
       id
       type
       content
@@ -166,6 +174,7 @@ export const onCreateNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -176,6 +185,7 @@ export const onCreateNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -202,8 +212,13 @@ export const onUpdateNotification = /* GraphQL */ `
   subscription OnUpdateNotification(
     $filter: ModelSubscriptionNotificationFilterInput
     $owner: String
+    $receiverID: String
   ) {
-    onUpdateNotification(filter: $filter, owner: $owner) {
+    onUpdateNotification(
+      filter: $filter
+      owner: $owner
+      receiverID: $receiverID
+    ) {
       id
       type
       content
@@ -216,6 +231,7 @@ export const onUpdateNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -226,6 +242,7 @@ export const onUpdateNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -252,8 +269,13 @@ export const onDeleteNotification = /* GraphQL */ `
   subscription OnDeleteNotification(
     $filter: ModelSubscriptionNotificationFilterInput
     $owner: String
+    $receiverID: String
   ) {
-    onDeleteNotification(filter: $filter, owner: $owner) {
+    onDeleteNotification(
+      filter: $filter
+      owner: $owner
+      receiverID: $receiverID
+    ) {
       id
       type
       content
@@ -266,6 +288,7 @@ export const onDeleteNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -276,6 +299,7 @@ export const onDeleteNotification = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -370,6 +394,7 @@ export const onCreateMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -405,6 +430,7 @@ export const onUpdateMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -440,6 +466,7 @@ export const onDeleteMessage = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -477,6 +504,7 @@ export const onCreatePost = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -516,6 +544,7 @@ export const onUpdatePost = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -555,6 +584,7 @@ export const onDeletePost = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -603,6 +633,7 @@ export const onCreateComment = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -640,6 +671,7 @@ export const onUpdateComment = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -677,6 +709,7 @@ export const onDeleteComment = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -712,6 +745,7 @@ export const onCreateLike = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -748,6 +782,7 @@ export const onUpdateLike = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -784,6 +819,7 @@ export const onDeleteLike = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -810,6 +846,7 @@ export const onCreateFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -820,6 +857,7 @@ export const onCreateFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -846,6 +884,7 @@ export const onUpdateFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -856,6 +895,7 @@ export const onUpdateFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -882,6 +922,7 @@ export const onDeleteFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
@@ -892,6 +933,7 @@ export const onDeleteFollow = /* GraphQL */ `
         username
         bio
         avatar
+        coverImage
         createdAt
         updatedAt
         owner
