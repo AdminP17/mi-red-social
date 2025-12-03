@@ -30,9 +30,10 @@ export default function Notifications({ onPostClick, onUserClick }) {
             variables: { filter: { receiverID: { eq: currentUserId } } }
         }).subscribe({
             next: ({ data }) => {
+                if (!data || !data.onCreateNotification) return;
                 const newNotif = data.onCreateNotification;
                 // Add to top of list if not a message
-                if (newNotif.type !== 'MESSAGE') {
+                if (newNotif.type && newNotif.type !== 'MESSAGE') {
                     setNotifications(prev => [newNotif, ...prev]);
                 }
             },

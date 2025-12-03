@@ -90,6 +90,7 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
             variables: { filter: { receiverID: { eq: user.userId } } }
         }).subscribe({
             next: ({ data }) => {
+                if (!data || !data.onCreateNotification) return;
                 const newNotif = data.onCreateNotification;
                 if (newNotif.type === 'MESSAGE') {
                     setUnreadMessagesCount(prev => prev + 1);
@@ -106,6 +107,7 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
             variables: { filter: { receiverID: { eq: user.userId } } }
         }).subscribe({
             next: ({ data }) => {
+                if (!data || !data.onUpdateNotification) return;
                 const updated = data.onUpdateNotification;
                 if (updated.isRead) {
                     if (updated.type === 'MESSAGE') {

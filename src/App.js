@@ -321,21 +321,7 @@ function MainContent() {
 
       {/* RIGHT SIDEBAR (Suggestions / Search / Etc) - Optional */}
       <div className="hidden lg:block w-96 p-8 sticky top-0 h-screen overflow-y-auto">
-        <div className="rounded-2xl p-6 shadow-sm border" style={{ backgroundColor: colors.surface, borderColor: colors.border }}>
-          <h3 className="font-bold mb-4 text-lg" style={{ color: colors.text }}>A quién seguir</h3>
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center space-x-3 animate-pulse">
-                <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="text-sm mt-6 text-center font-medium" style={{ color: colors.primary }}>Mostrar más</p>
-        </div>
+
 
         <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium px-4" style={{ color: colors.textTertiary }}>
           <a href="#" className="hover:underline">Condiciones</a>
