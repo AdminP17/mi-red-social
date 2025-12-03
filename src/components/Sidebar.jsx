@@ -14,23 +14,19 @@ import {
     commentsByUserID,
     likesByUserID,
     followsByFollowerID,
-    followsByFollowedID,
-    notificationsByReceiverID
+    followsByFollowedID
 } from "../graphql/queries";
-import { onCreateNotification, onUpdateNotification } from "../graphql/subscriptions";
 import ConfirmationModal from "./ConfirmationModal";
 import { useTheme } from "../context/ThemeContext";
 import { Icons } from "./Icons";
 
 const client = generateClient();
 
-export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
+export default function Sidebar({ user, activeTab, onTabChange, onSignOut, unreadNotifsCount, unreadMessagesCount }) {
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
-    const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
     const { colors, theme, toggleTheme } = useTheme();
 
@@ -51,91 +47,14 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
         }
     }, [user]);
 
-    // Fetch Unread Notifications Count
     useEffect(() => {
-        if (!user?.userId) return;
-
-        const fetchUnread = async () => {
-            try {
-                const res = await client.graphql({
-                    query: notificationsByReceiverID,
-                    variables: {
-                        receiverID: user.userId,
-                        limit: 1000,
-                        filter: { isRead: { eq: false } }
-                    }
-                });
-                const items = res.data.notificationsByReceiverID.items;
-
-                const messages = items.filter(n => n.type === 'MESSAGE').length;
-                const notifs = items.filter(n => n.type !== 'MESSAGE').length;
-
-                setUnreadMessagesCount(messages);
-                setUnreadNotifsCount(notifs);
-            } catch (e) {
-                console.error("Error fetching unread count:", e);
-            }
-        };
-
-        fetchUnread();
-    }, [user]);
-
-    // Subscribe to increment count (create) and decrement (update)
-    useEffect(() => {
-        if (!user?.userId) return;
-
-        // Create subscription
-        // Custom subscription for Sidebar to avoid schema issues
-        const onCreateNotificationSimple = /* GraphQL */ `
-            subscription OnCreateNotification($filter: ModelSubscriptionNotificationFilterInput) {
-                onCreateNotification(filter: $filter) {
-                    id
-                    type
-                    isRead
-                    receiverID
-                }
-            }
-        `;
-
-        const createSub = client.graphql({
-            query: onCreateNotificationSimple,
-            variables: { filter: { receiverID: { eq: user.userId } } }
-        }).subscribe({
-            next: ({ data }) => {
-                if (!data || !data.onCreateNotification) return;
-                const newNotif = data.onCreateNotification;
-                if (newNotif.type === 'MESSAGE') {
-                    setUnreadMessagesCount(prev => prev + 1);
-                } else {
-                    setUnreadNotifsCount(prev => prev + 1);
-                }
-            },
-            error: err => console.error("Notif create subscription error:", err)
-        });
-
-        // Update subscription (for mark as read)
-        const updateSub = client.graphql({
-            query: onUpdateNotification,
-            variables: { filter: { receiverID: { eq: user.userId } } }
-        }).subscribe({
-            next: ({ data }) => {
-                if (!data || !data.onUpdateNotification) return;
-                const updated = data.onUpdateNotification;
-                if (updated.isRead) {
-                    if (updated.type === 'MESSAGE') {
-                        setUnreadMessagesCount(prev => Math.max(0, prev - 1));
-                    } else {
-                        setUnreadNotifsCount(prev => Math.max(0, prev - 1));
-                    }
-                }
-            },
-            error: err => console.error("Notif update subscription error:", err)
-        });
-
-        return () => {
-            createSub.unsubscribe();
-            updateSub.unsubscribe();
-        };
+        if (user?.avatar) {
+            getUrl({ key: user.avatar })
+                .then(res => setAvatarUrl(res.url.toString()))
+                .catch(err => console.error("Error loading sidebar avatar:", err));
+        } else {
+            setAvatarUrl(null);
+        }
     }, [user]);
 
     const handleDeleteAccount = () => {

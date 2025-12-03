@@ -4,8 +4,9 @@ import "@aws-amplify/ui-react/styles.css";
 import "./amplify-config";
 
 import { generateClient } from "aws-amplify/api";
-import { getUserProfile } from "./graphql/queries";
+import { getUserProfile, notificationsByReceiverID } from "./graphql/queries";
 import { createUserProfile } from "./graphql/mutations";
+import { onCreateNotification, onUpdateNotification } from "./graphql/subscriptions";
 
 import CreatePost from "./components/CreatePost";
 import Feed from "./components/Feed";
@@ -45,6 +46,8 @@ function MainContent() {
   const [activeTab, setActiveTab] = useState("home");
   const [dbUser, setDbUser] = useState(null);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   // ⭐ CREA AUTOMÁTICAMENTE EL USERPROFILE si no existe
   const creatingProfile = React.useRef(false);
@@ -94,6 +97,93 @@ function MainContent() {
     ensureProfile();
   }, [user]);
 
+  // Fetch Unread Notifications Count
+  useEffect(() => {
+    if (!user?.userId) return;
+
+    const fetchUnread = async () => {
+      try {
+        const res = await client.graphql({
+          query: notificationsByReceiverID,
+          variables: {
+            receiverID: user.userId,
+            limit: 1000,
+            filter: { isRead: { eq: false } }
+          }
+        });
+        const items = res.data.notificationsByReceiverID.items;
+
+        const messages = items.filter(n => n.type === 'MESSAGE').length;
+        const notifs = items.filter(n => n.type !== 'MESSAGE').length;
+
+        setUnreadMessagesCount(messages);
+        setUnreadNotifsCount(notifs);
+      } catch (e) {
+        console.error("Error fetching unread count:", e);
+      }
+    };
+
+    fetchUnread();
+  }, [user]);
+
+  // Subscribe to increment count (create) and decrement (update)
+  useEffect(() => {
+    if (!user?.userId) return;
+
+    // Create subscription
+    // Custom subscription for Sidebar to avoid schema issues
+    const onCreateNotificationSimple = /* GraphQL */ `
+            subscription OnCreateNotification($filter: ModelSubscriptionNotificationFilterInput) {
+                onCreateNotification(filter: $filter) {
+                    id
+                    type
+                    isRead
+                    receiverID
+                }
+            }
+        `;
+
+    const createSub = client.graphql({
+      query: onCreateNotificationSimple,
+      variables: { filter: { receiverID: { eq: user.userId } } }
+    }).subscribe({
+      next: ({ data }) => {
+        if (!data || !data.onCreateNotification) return;
+        const newNotif = data.onCreateNotification;
+        if (newNotif.type === 'MESSAGE') {
+          setUnreadMessagesCount(prev => prev + 1);
+        } else {
+          setUnreadNotifsCount(prev => prev + 1);
+        }
+      },
+      error: err => console.error("Notif create subscription error:", err)
+    });
+
+    // Update subscription (for mark as read)
+    const updateSub = client.graphql({
+      query: onUpdateNotification,
+      variables: { filter: { receiverID: { eq: user.userId } } }
+    }).subscribe({
+      next: ({ data }) => {
+        if (!data || !data.onUpdateNotification) return;
+        const updated = data.onUpdateNotification;
+        if (updated.isRead) {
+          if (updated.type === 'MESSAGE') {
+            setUnreadMessagesCount(prev => Math.max(0, prev - 1));
+          } else {
+            setUnreadNotifsCount(prev => Math.max(0, prev - 1));
+          }
+        }
+      },
+      error: err => console.error("Notif update subscription error:", err)
+    });
+
+    return () => {
+      createSub.unsubscribe();
+      updateSub.unsubscribe();
+    };
+  }, [user]);
+
   // Handle Tab Changes
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -127,6 +217,8 @@ function MainContent() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onSignOut={signOut}
+        unreadNotifsCount={unreadNotifsCount}
+        unreadMessagesCount={unreadMessagesCount}
       />
 
       {/* MAIN CONTENT AREA */}
@@ -358,11 +450,17 @@ function MainContent() {
         <button onClick={() => handleTabChange("home")} className={`p-2 rounded-xl transition-all ${activeTab === 'home' ? 'bg-violet-100 text-violet-600' : 'text-slate-500'}`}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={activeTab === 'home' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </button>
-        <button onClick={() => handleTabChange("notifications")} className={`p-2 rounded-xl transition-all ${activeTab === 'notifications' ? 'bg-violet-100 text-violet-600' : 'text-slate-500'}`}>
+        <button onClick={() => handleTabChange("notifications")} className={`p-2 rounded-xl transition-all relative ${activeTab === 'notifications' ? 'bg-violet-100 text-violet-600' : 'text-slate-500'}`}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={activeTab === 'notifications' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          {unreadNotifsCount > 0 && (
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+          )}
         </button>
-        <button onClick={() => handleTabChange("messages")} className={`p-2 rounded-xl transition-all ${activeTab === 'messages' ? 'bg-violet-100 text-violet-600' : 'text-slate-500'}`}>
+        <button onClick={() => handleTabChange("messages")} className={`p-2 rounded-xl transition-all relative ${activeTab === 'messages' ? 'bg-violet-100 text-violet-600' : 'text-slate-500'}`}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+          {unreadMessagesCount > 0 && (
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+          )}
         </button>
         <button onClick={() => handleTabChange("profile")} className={`p-2 rounded-xl transition-all ${activeTab === 'profile' ? 'bg-violet-100 text-violet-600' : 'text-slate-500'}`}>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={activeTab === 'profile' ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
