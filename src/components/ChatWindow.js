@@ -183,7 +183,7 @@ export default function ChatWindow({ chat, currentUser, onBack, onUserClick }) {
     if (!themeColors) return null;
 
     return (
-        <div className="flex flex-col h-full" style={{ backgroundColor: themeColors.bg }}>
+        <div className="flex flex-col h-full pb-20 md:pb-0" style={{ backgroundColor: themeColors.bg }}>
             {/* Header */}
             <div className="p-4 border-b flex items-center space-x-3 sticky top-0 z-10 backdrop-blur-md"
                 style={{ backgroundColor: `${themeColors.surface}CC`, borderColor: themeColors.border }}>
