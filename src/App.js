@@ -131,12 +131,14 @@ function MainContent() {
       {/* MAIN CONTENT AREA */}
       <main className="flex-1 max-w-2xl w-full min-h-screen relative" style={{ borderRight: `1px solid ${colors.border}` }}>
 
-        {/* Mobile Header (visible only on small screens) */}
-        <div className="md:hidden sticky top-0 z-50 p-4 flex justify-between items-center backdrop-blur-xl border-b"
-          style={{ backgroundColor: `${colors.surface}CC`, borderColor: colors.border }}>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">P17</h1>
-          <button onClick={signOut} className="text-sm font-medium" style={{ color: colors.error }}>Salir</button>
-        </div>
+        {/* Mobile Header (visible only on small screens and when not in full view) */}
+        {!viewingProfile && !viewingPost && !(activeTab === "messages" && selectedChat) && (
+          <div className="md:hidden sticky top-0 z-50 p-4 flex justify-between items-center backdrop-blur-xl border-b"
+            style={{ backgroundColor: `${colors.surface}CC`, borderColor: colors.border }}>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">P17</h1>
+            <button onClick={signOut} className="text-sm font-medium" style={{ color: colors.error }}>Salir</button>
+          </div>
+        )}
 
         {/* CONTENT SWITCHER */}
         {viewingProfile ? (
