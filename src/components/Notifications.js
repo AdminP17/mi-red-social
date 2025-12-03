@@ -88,7 +88,32 @@ export default function Notifications({ onPostClick, onUserClick }) {
             error: (err) => console.error("Subscription error:", err)
         });
 
-        return () => subscription.unsubscribe();
+        // Subscribe to deleted notifications
+        const onDeleteNotificationSimple = /* GraphQL */ `
+            subscription OnDeleteNotification($filter: ModelSubscriptionNotificationFilterInput) {
+                onDeleteNotification(filter: $filter) {
+                    id
+                    receiverID
+                }
+            }
+        `;
+
+        const deleteSub = client.graphql({
+            query: onDeleteNotificationSimple,
+            variables: { filter: { receiverID: { eq: currentUserId } } }
+        }).subscribe({
+            next: ({ data }) => {
+                if (!data || !data.onDeleteNotification) return;
+                const deletedId = data.onDeleteNotification.id;
+                setNotifications(prev => prev.filter(n => n.id !== deletedId));
+            },
+            error: (err) => console.error("Delete subscription error:", err)
+        });
+
+        return () => {
+            subscription.unsubscribe();
+            deleteSub.unsubscribe();
+        };
     }, [currentUserId]);
 
     async function loadNotifications() {

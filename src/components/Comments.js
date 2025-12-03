@@ -147,8 +147,44 @@ export default function Comments({ postId }) {
         query: deleteComment,
         variables: { input: { id: deleteConfirm } }
       });
+
+      const deletedComment = comments.find(c => c.id === deleteConfirm);
       setComments(prev => prev.filter(c => c.id !== deleteConfirm));
       setDeleteConfirm(null);
+
+      // Remove Notification (Best effort match)
+      if (deletedComment) {
+        try {
+          const { listNotifications } = require("../graphql/queries");
+          const { deleteNotification } = require("../graphql/mutations");
+
+          const notifRes = await client.graphql({
+            query: listNotifications,
+            variables: {
+              filter: {
+                senderID: { eq: currentUserId },
+                type: { eq: "COMMENT" },
+                postID: { eq: postId },
+                // We try to match content roughly or just by post/sender/type
+                // Since we don't store commentID in notification, this is imperfect but works for most cases
+              }
+            }
+          });
+
+          const potentialNotifs = notifRes.data.listNotifications.items;
+          // Filter by content match to be safer
+          const targetNotif = potentialNotifs.find(n => n.content.includes(deletedComment.content.substring(0, 10)));
+
+          if (targetNotif) {
+            await client.graphql({
+              query: deleteNotification,
+              variables: { input: { id: targetNotif.id } }
+            });
+          }
+        } catch (e) {
+          console.warn("Error removing notification:", e);
+        }
+      }
     } catch (err) {
       console.error("Error deleting comment:", err);
     }

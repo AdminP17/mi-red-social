@@ -152,6 +152,34 @@ export default function LikeButton({ postID }) {
             }
           });
           setLikeId(null);
+
+          // Remove Notification
+          try {
+            const { listNotifications } = require("../graphql/queries");
+            const notifRes = await client.graphql({
+              query: listNotifications,
+              variables: {
+                filter: {
+                  senderID: { eq: user.userId },
+                  type: { eq: "LIKE" },
+                  postID: { eq: postID }
+                }
+              }
+            });
+
+            const notifsToDelete = notifRes.data.listNotifications.items;
+            if (notifsToDelete.length > 0) {
+              await Promise.all(notifsToDelete.map(n =>
+                client.graphql({
+                  query: createNotification, // Re-using the import but it's actually deleteNotification we need
+                  query: require("../graphql/mutations").deleteNotification,
+                  variables: { input: { id: n.id } }
+                })
+              ));
+            }
+          } catch (e) {
+            console.warn("Error removing notification:", e);
+          }
         }
       }
     } catch (err) {
