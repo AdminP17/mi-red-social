@@ -18,6 +18,7 @@ import ChatWindow from "./components/ChatWindow";
 import PostDetail from "./components/PostDetail";
 import Sidebar from "./components/Sidebar";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { Icons } from "./components/Icons";
 
 const client = generateClient();
 
@@ -115,7 +116,7 @@ function MainContent() {
     }
   };
 
-  const { colors } = useTheme();
+  const { colors, theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen flex justify-center transition-colors duration-300 font-sans" style={{ backgroundColor: colors.bg }}>
@@ -136,7 +137,16 @@ function MainContent() {
           <div className="md:hidden sticky top-0 z-50 p-4 flex justify-between items-center backdrop-blur-xl border-b"
             style={{ backgroundColor: `${colors.surface}CC`, borderColor: colors.border }}>
             <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">P17</h1>
-            <button onClick={signOut} className="text-sm font-medium" style={{ color: colors.error }}>Salir</button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full transition-all active:scale-95"
+                style={{ backgroundColor: colors.bgSecondary }}
+              >
+                {theme === 'light' ? <Icons.Moon size={18} color={colors.textSecondary} /> : <Icons.Sun size={18} color={colors.textSecondary} />}
+              </button>
+              <button onClick={signOut} className="text-sm font-medium" style={{ color: colors.error }}>Salir</button>
+            </div>
           </div>
         )}
 
