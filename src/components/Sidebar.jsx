@@ -85,8 +85,20 @@ export default function Sidebar({ user, activeTab, onTabChange, onSignOut }) {
         if (!user?.userId) return;
 
         // Create subscription
+        // Custom subscription for Sidebar to avoid schema issues
+        const onCreateNotificationSimple = /* GraphQL */ `
+            subscription OnCreateNotification($filter: ModelSubscriptionNotificationFilterInput) {
+                onCreateNotification(filter: $filter) {
+                    id
+                    type
+                    isRead
+                    receiverID
+                }
+            }
+        `;
+
         const createSub = client.graphql({
-            query: onCreateNotification,
+            query: onCreateNotificationSimple,
             variables: { filter: { receiverID: { eq: user.userId } } }
         }).subscribe({
             next: ({ data }) => {

@@ -25,15 +25,63 @@ export default function Notifications({ onPostClick, onUserClick }) {
         loadNotifications();
 
         // Subscribe to new notifications
+        // Custom subscription to avoid issues with auto-generated one expecting full objects
+        const onCreateNotificationSimple = /* GraphQL */ `
+            subscription OnCreateNotification($filter: ModelSubscriptionNotificationFilterInput) {
+                onCreateNotification(filter: $filter) {
+                    id
+                    type
+                    content
+                    senderID
+                    receiverID
+                    postID
+                    createdAt
+                    isRead
+                }
+            }
+        `;
+
         const subscription = client.graphql({
-            query: onCreateNotification,
+            query: onCreateNotificationSimple,
             variables: { filter: { receiverID: { eq: currentUserId } } }
         }).subscribe({
-            next: ({ data }) => {
+            next: async ({ data }) => {
                 if (!data || !data.onCreateNotification) return;
                 const newNotif = data.onCreateNotification;
+
                 // Add to top of list if not a message
                 if (newNotif.type && newNotif.type !== 'MESSAGE') {
+                    // Enrich with sender info if missing or needs avatar URL
+                    let sender = newNotif.sender;
+
+                    if (!sender && newNotif.senderID) {
+                        try {
+                            const { getUserProfile } = require("../graphql/queries");
+                            const userRes = await client.graphql({
+                                query: getUserProfile,
+                                variables: { id: newNotif.senderID }
+                            });
+                            sender = userRes.data.getUserProfile;
+                        } catch (e) {
+                            console.error("Error fetching sender for notification:", e);
+                        }
+                    }
+
+                    if (sender) {
+                        newNotif.sender = sender;
+                        if (sender.avatar) {
+                            try {
+                                const urlResult = await getUrl({
+                                    key: sender.avatar,
+                                    options: { validateObjectExistence: false }
+                                });
+                                newNotif.sender.avatarUrl = urlResult.url.toString();
+                            } catch (e) {
+                                console.warn("Error getting avatar url for notification:", e);
+                            }
+                        }
+                    }
+
                     setNotifications(prev => [newNotif, ...prev]);
                 }
             },

@@ -119,6 +119,10 @@ export default function LikeButton({ postID }) {
             createNotification(input: $input) {
               id
               type
+              content
+              senderID
+              receiverID
+              createdAt
             }
           }
         `;

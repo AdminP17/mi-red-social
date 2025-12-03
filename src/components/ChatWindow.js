@@ -154,6 +154,22 @@ export default function ChatWindow({ chat, currentUser, onBack }) {
                 }
             });
 
+            // 3. Update Chat timestamp for sorting
+            const { updateChat } = require("../graphql/mutations");
+            await client.graphql({
+                query: updateChat,
+                variables: {
+                    input: {
+                        id: chat.id,
+                        // Amplify automatically updates 'updatedAt' when an item is updated
+                        // We just need to touch the item. We can pass the same participants or just the ID.
+                        // However, to be safe and ensure a change might be registered if needed (though updatedAt is auto),
+                        // we can just pass the ID. Amplify's DynamoDB resolver handles updatedAt.
+                        // Let's just pass the ID.
+                    }
+                }
+            });
+
 
 
         } catch (err) {

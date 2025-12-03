@@ -86,6 +86,10 @@ export default function FollowButton({ targetUserId }) {
             createNotification(input: $input) {
               id
               type
+              content
+              senderID
+              receiverID
+              createdAt
             }
           }
         `;

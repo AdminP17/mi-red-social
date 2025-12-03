@@ -103,6 +103,10 @@ export default function Comments({ postId }) {
           createNotification(input: $input) {
             id
             type
+            content
+            senderID
+            receiverID
+            createdAt
           }
         }
       `;

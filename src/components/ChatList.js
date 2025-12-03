@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { generateClient } from "aws-amplify/api";
-import { listChats, getUserProfile } from "../graphql/queries";
+import { listChats, getUserProfile, notificationsByReceiverID } from "../graphql/queries";
 import { createChat } from "../graphql/mutations";
 import { getUrl } from "@aws-amplify/storage";
 import { useTheme } from "../context/ThemeContext";
@@ -22,8 +22,7 @@ export default function ChatList({ currentUser, onSelectChat }) {
     async function loadChats() {
         setLoading(true);
         try {
-            // 1. List all chats (filtering client side for now as per schema limitations)
-            // Ideally we'd have a GSI on participants, but for now we filter
+            // 1. List all chats
             const res = await client.graphql({
                 query: listChats,
                 variables: { limit: 1000 }
@@ -32,9 +31,29 @@ export default function ChatList({ currentUser, onSelectChat }) {
             const allChats = res.data.listChats.items;
             const myChats = allChats.filter(c => c.participants.includes(currentUser.userId));
 
-            // 2. Enrich with other user info
+            // 2. Fetch unread message notifications
+            const notifRes = await client.graphql({
+                query: notificationsByReceiverID,
+                variables: {
+                    receiverID: currentUser.userId,
+                    filter: {
+                        type: { eq: "MESSAGE" },
+                        isRead: { eq: false }
+                    },
+                    limit: 1000
+                }
+            });
+            const unreadNotifs = notifRes.data.notificationsByReceiverID.items;
+
+            // Count unread per sender
+            const unreadMap = {};
+            unreadNotifs.forEach(n => {
+                unreadMap[n.senderID] = (unreadMap[n.senderID] || 0) + 1;
+            });
+
+            // 3. Enrich with other user info & unread count
             const enrichedChats = await Promise.all(myChats.map(async (chat) => {
-                const otherUserId = chat.participants.find(p => p !== currentUser.userId) || currentUser.userId; // Handle self-chat edge case
+                const otherUserId = chat.participants.find(p => p !== currentUser.userId) || currentUser.userId;
 
                 try {
                     const userRes = await client.graphql({
@@ -50,10 +69,14 @@ export default function ChatList({ currentUser, onSelectChat }) {
                             .catch(e => console.warn("Error loading avatar:", e));
                     }
 
-                    return { ...chat, otherUser };
+                    return {
+                        ...chat,
+                        otherUser,
+                        unreadCount: unreadMap[otherUserId] || 0
+                    };
                 } catch (e) {
                     console.warn("Error fetching user for chat:", e);
-                    return { ...chat, otherUser: { username: "Usuario", id: otherUserId } };
+                    return { ...chat, otherUser: { username: "Usuario", id: otherUserId }, unreadCount: 0 };
                 }
             }));
 
@@ -87,7 +110,8 @@ export default function ChatList({ currentUser, onSelectChat }) {
                 }
             });
             const newChat = res.data.createChat;
-            newChat.otherUser = selectedUser; // Manually attach for UI
+            newChat.otherUser = selectedUser;
+            newChat.unreadCount = 0;
 
             setChats(prev => [newChat, ...prev]);
             onSelectChat(newChat);
@@ -122,9 +146,9 @@ export default function ChatList({ currentUser, onSelectChat }) {
                             <button
                                 key={chat.id}
                                 onClick={() => onSelectChat(chat)}
-                                className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5 text-left group"
+                                className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5 text-left group relative"
                             >
-                                <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden shadow-sm"
+                                <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden shadow-sm relative"
                                     style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
                                     {avatars[chat.otherUser.id] ? (
                                         <img src={avatars[chat.otherUser.id]} alt={chat.otherUser.username} className="w-full h-full object-cover" />
@@ -134,14 +158,24 @@ export default function ChatList({ currentUser, onSelectChat }) {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline">
-                                        <h3 className="font-bold truncate" style={{ color: colors.text }}>{chat.otherUser.username}</h3>
-                                        <span className="text-xs" style={{ color: colors.textSecondary }}>
+                                        <h3 className={`truncate ${chat.unreadCount > 0 ? 'font-extrabold' : 'font-bold'}`}
+                                            style={{ color: colors.text }}>
+                                            {chat.otherUser.username}
+                                        </h3>
+                                        <span className={`text-xs ${chat.unreadCount > 0 ? 'font-bold text-violet-600' : ''}`}
+                                            style={{ color: chat.unreadCount > 0 ? colors.primary : colors.textSecondary }}>
                                             {new Date(chat.updatedAt).toLocaleDateString()}
                                         </span>
                                     </div>
-                                    <p className="text-sm truncate opacity-70" style={{ color: colors.textSecondary }}>
-                                        Abrir conversación...
-                                    </p>
+                                    <div className="flex justify-between items-center">
+                                        <p className={`text-sm truncate ${chat.unreadCount > 0 ? 'font-bold' : 'opacity-70'}`}
+                                            style={{ color: chat.unreadCount > 0 ? colors.text : colors.textSecondary }}>
+                                            {chat.unreadCount > 0 ? `${chat.unreadCount} mensajes nuevos` : "Abrir conversación..."}
+                                        </p>
+                                        {chat.unreadCount > 0 && (
+                                            <div className="w-2.5 h-2.5 rounded-full bg-violet-600 ml-2"></div>
+                                        )}
+                                    </div>
                                 </div>
                             </button>
                         ))}
