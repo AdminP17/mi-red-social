@@ -10,7 +10,7 @@ import { Icons } from "./Icons";
 
 const client = generateClient();
 
-export default function ChatWindow({ chat, currentUser, onBack }) {
+export default function ChatWindow({ chat, currentUser, onBack, onUserClick }) {
     const { colors: themeColors } = useTheme();
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -62,7 +62,7 @@ export default function ChatWindow({ chat, currentUser, onBack }) {
                     variables: {
                         senderID: chat.otherUser.id,
                         filter: {
-                            receiverID: { eq: currentUser.userId },
+                            receiverID: { eq: currentUser.userId, },
                             type: { eq: "MESSAGE" },
                             isRead: { eq: false }
                         }
@@ -191,17 +191,22 @@ export default function ChatWindow({ chat, currentUser, onBack }) {
                     <Icons.ArrowLeft size={20} />
                 </button>
 
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden"
-                    style={{ backgroundColor: themeColors.primaryLight, color: themeColors.primary }}>
-                    {otherUserAvatar ? (
-                        <img src={otherUserAvatar} alt={otherUser.username} className="w-full h-full object-cover" />
-                    ) : (
-                        otherUser.username.charAt(0).toUpperCase()
-                    )}
-                </div>
-                <div>
-                    <h3 className="font-bold" style={{ color: themeColors.text }}>{otherUser.username}</h3>
-                    <p className="text-xs" style={{ color: themeColors.textSecondary }}>@{otherUser.username}</p>
+                <div
+                    className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => onUserClick && onUserClick(otherUser)}
+                >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold overflow-hidden"
+                        style={{ backgroundColor: themeColors.primaryLight, color: themeColors.primary }}>
+                        {otherUserAvatar ? (
+                            <img src={otherUserAvatar} alt={otherUser.username} className="w-full h-full object-cover" />
+                        ) : (
+                            otherUser.username.charAt(0).toUpperCase()
+                        )}
+                    </div>
+                    <div>
+                        <h3 className="font-bold" style={{ color: themeColors.text }}>{otherUser.username}</h3>
+                        <p className="text-xs" style={{ color: themeColors.textSecondary }}>@{otherUser.username}</p>
+                    </div>
                 </div>
             </div>
 

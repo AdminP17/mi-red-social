@@ -85,18 +85,31 @@ export default function LikeButton({ postID }) {
       const user = await getCurrentUser();
 
       if (!previousLiked) {
-        // ADD LIKE
+        // ADD LIKE - Simplified mutation
+        const createLikeSimple = /* GraphQL */ `
+          mutation CreateLike(
+            $input: CreateLikeInput!
+          ) {
+            createLike(input: $input) {
+              id
+              postID
+              userID
+            }
+          }
+        `;
+
         const result = await client.graphql({
-          query: createLike,
+          query: createLikeSimple,
           variables: {
             input: { postID, userID: user.userId }
-          }
+          },
+          authMode: 'userPool'
         });
 
         const newLike = result.data.createLike;
         setLikeId(newLike.id);
 
-        // Create Notification (if not own post)
+        // Create Notification logic remains same...
         // Fetch post to get owner
         const postRes = await client.graphql({
           query: `
@@ -106,12 +119,12 @@ export default function LikeButton({ postID }) {
               }
             }
           `,
-          variables: { id: postID }
+          variables: { id: postID },
+          authMode: 'userPool'
         });
 
         const postOwnerID = postRes.data.getPost.userID;
 
-        // Custom mutation to avoid fetching post details which causes errors if postID is null or not resolved yet
         const createNotificationSimple = /* GraphQL */ `
           mutation CreateNotification(
             $input: CreateNotificationInput!
@@ -138,22 +151,36 @@ export default function LikeButton({ postID }) {
                 receiverID: postOwnerID,
                 postID: postID
               }
-            }
+            },
+            authMode: 'userPool'
           });
         }
 
       } else {
-        // REMOVE LIKE
+        // REMOVE LIKE - Simplified mutation
         if (likeId) {
+          const deleteLikeSimple = /* GraphQL */ `
+            mutation DeleteLike(
+              $input: DeleteLikeInput!
+            ) {
+              deleteLike(input: $input) {
+                id
+                postID
+                userID
+              }
+            }
+          `;
+
           await client.graphql({
-            query: deleteLike,
+            query: deleteLikeSimple,
             variables: {
               input: { id: likeId }
-            }
+            },
+            authMode: 'userPool'
           });
           setLikeId(null);
 
-          // Remove Notification
+          // Remove Notification logic...
           try {
             const { listNotifications } = require("../graphql/queries");
             const notifRes = await client.graphql({
@@ -164,16 +191,17 @@ export default function LikeButton({ postID }) {
                   type: { eq: "LIKE" },
                   postID: { eq: postID }
                 }
-              }
+              },
+              authMode: 'userPool'
             });
 
             const notifsToDelete = notifRes.data.listNotifications.items;
             if (notifsToDelete.length > 0) {
               await Promise.all(notifsToDelete.map(n =>
                 client.graphql({
-                  query: createNotification, // Re-using the import but it's actually deleteNotification we need
                   query: require("../graphql/mutations").deleteNotification,
-                  variables: { input: { id: n.id } }
+                  variables: { input: { id: n.id } },
+                  authMode: 'userPool'
                 })
               ));
             }

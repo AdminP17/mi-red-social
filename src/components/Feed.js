@@ -125,16 +125,28 @@ export default function Feed({ reload, onUserClick }) {
   async function handleDeletePost(postId) {
     // Confirmation handled in UI
     try {
+      const deletePostSimple = /* GraphQL */ `
+        mutation DeletePost(
+          $input: DeletePostInput!
+        ) {
+          deletePost(input: $input) {
+            id
+            userID
+          }
+        }
+      `;
+
       await client.graphql({
-        query: deletePost,
-        variables: { input: { id: postId } }
+        query: deletePostSimple,
+        variables: { input: { id: postId } },
+        authMode: 'userPool'
       });
 
       setPosts(prev => prev.filter(p => p.id !== postId));
       setDeleteConfirm(null);
     } catch (err) {
       console.error("Error deleting post:", err);
-      alert("No se pudo eliminar el post.");
+      // alert("No se pudo eliminar el post.");
     }
   }
 

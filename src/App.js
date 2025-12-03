@@ -267,11 +267,19 @@ function MainContent() {
                 chat={selectedChat}
                 currentUser={user}
                 onBack={() => setSelectedChat(null)}
+                onUserClick={(u) => {
+                  setViewingProfile(u);
+                  setActiveTab("profile_view");
+                }}
               />
             ) : (
               <ChatList
                 currentUser={user}
                 onSelectChat={setSelectedChat}
+                onUserClick={(u) => {
+                  setViewingProfile(u);
+                  setActiveTab("profile_view");
+                }}
               />
             )}
           </div>

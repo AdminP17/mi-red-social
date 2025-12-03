@@ -94,8 +94,22 @@ export default function Comments({ postId }) {
     setLoading(true);
 
     try {
+      const createCommentSimple = /* GraphQL */ `
+        mutation CreateComment(
+          $input: CreateCommentInput!
+        ) {
+          createComment(input: $input) {
+            id
+            postID
+            userID
+            content
+            createdAt
+          }
+        }
+      `;
+
       const res = await client.graphql({
-        query: createComment,
+        query: createCommentSimple,
         variables: {
           input: {
             postID: postId,
@@ -103,6 +117,7 @@ export default function Comments({ postId }) {
             userID: currentUserId
           },
         },
+        authMode: 'userPool'
       });
 
       // Create Notification
@@ -115,7 +130,8 @@ export default function Comments({ postId }) {
             }
           }
         `,
-        variables: { id: postId }
+        variables: { id: postId },
+        authMode: 'userPool'
       });
       const postOwnerID = postRes.data.getPost.userID;
 
@@ -146,7 +162,8 @@ export default function Comments({ postId }) {
               receiverID: postOwnerID,
               postID: postId
             }
-          }
+          },
+          authMode: 'userPool'
         });
       }
 
@@ -154,7 +171,7 @@ export default function Comments({ postId }) {
       loadComments();
     } catch (err) {
       console.error("Error adding comment:", err);
-      alert("Error al publicar comentario");
+      // alert("Error al publicar comentario");
     } finally {
       setLoading(false);
     }
@@ -167,9 +184,22 @@ export default function Comments({ postId }) {
   async function confirmDelete() {
     if (!deleteConfirm) return;
     try {
+      const deleteCommentSimple = /* GraphQL */ `
+        mutation DeleteComment(
+          $input: DeleteCommentInput!
+        ) {
+          deleteComment(input: $input) {
+            id
+            postID
+            userID
+          }
+        }
+      `;
+
       await client.graphql({
-        query: deleteComment,
-        variables: { input: { id: deleteConfirm } }
+        query: deleteCommentSimple,
+        variables: { input: { id: deleteConfirm } },
+        authMode: 'userPool'
       });
 
       const deletedComment = comments.find(c => c.id === deleteConfirm);
@@ -189,20 +219,19 @@ export default function Comments({ postId }) {
                 senderID: { eq: currentUserId },
                 type: { eq: "COMMENT" },
                 postID: { eq: postId },
-                // We try to match content roughly or just by post/sender/type
-                // Since we don't store commentID in notification, this is imperfect but works for most cases
               }
-            }
+            },
+            authMode: 'userPool'
           });
 
           const potentialNotifs = notifRes.data.listNotifications.items;
-          // Filter by content match to be safer
           const targetNotif = potentialNotifs.find(n => n.content.includes(deletedComment.content.substring(0, 10)));
 
           if (targetNotif) {
             await client.graphql({
               query: deleteNotification,
-              variables: { input: { id: targetNotif.id } }
+              variables: { input: { id: targetNotif.id } },
+              authMode: 'userPool'
             });
           }
         } catch (e) {

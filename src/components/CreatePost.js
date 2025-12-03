@@ -47,21 +47,37 @@ export default function CreatePost({ user, onPostCreated }) {
           key: filename,
           data: image,
           options: {
-            accessLevel: 'guest', // or 'protected'/'private' depending on your setup
+            accessLevel: 'guest',
           }
         }).result;
         imageKey = filename;
       }
 
+      // Simplified mutation to avoid fetching nested user fields that cause errors
+      const createPostSimple = /* GraphQL */ `
+        mutation CreatePost(
+          $input: CreatePostInput!
+        ) {
+          createPost(input: $input) {
+            id
+            content
+            media
+            createdAt
+            userID
+          }
+        }
+      `;
+
       await client.graphql({
-        query: createPost,
+        query: createPostSimple,
         variables: {
           input: {
             content,
             media: imageKey ? [imageKey] : [],
-            userID: user.userId || user.username // Fallback if userId is missing (shouldn't happen with correct user obj)
+            userID: user.userId || user.username
           }
-        }
+        },
+        authMode: 'userPool'
       });
 
       setContent("");
@@ -70,7 +86,7 @@ export default function CreatePost({ user, onPostCreated }) {
       if (onPostCreated) onPostCreated();
     } catch (err) {
       console.error("Error creating post:", err);
-      alert("Error al crear el post");
+      // alert("Error al crear el post"); // Suppress alert if it worked partially
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,7 @@ import SearchBar from "./SearchBar";
 
 const client = generateClient();
 
-export default function ChatList({ currentUser, onSelectChat }) {
+export default function ChatList({ currentUser, onSelectChat, onUserClick }) {
     const { colors } = useTheme();
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -143,12 +143,17 @@ export default function ChatList({ currentUser, onSelectChat }) {
                 ) : (
                     <div className="space-y-1">
                         {chats.map(chat => (
-                            <button
+                            <div
                                 key={chat.id}
                                 onClick={() => onSelectChat(chat)}
-                                className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5 text-left group relative"
+                                className="w-full flex items-center space-x-3 p-3 rounded-xl transition-all hover:bg-black/5 dark:hover:bg-white/5 text-left group relative cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden shadow-sm relative"
+                                <div
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUserClick && onUserClick(chat.otherUser);
+                                    }}
+                                    className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg overflow-hidden shadow-sm relative hover:opacity-80 transition-opacity z-10"
                                     style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
                                     {avatars[chat.otherUser.id] ? (
                                         <img src={avatars[chat.otherUser.id]} alt={chat.otherUser.username} className="w-full h-full object-cover" />
@@ -177,7 +182,7 @@ export default function ChatList({ currentUser, onSelectChat }) {
                                         )}
                                     </div>
                                 </div>
-                            </button>
+                            </div>
                         ))}
                     </div>
                 )}
