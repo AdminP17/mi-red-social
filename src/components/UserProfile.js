@@ -7,6 +7,8 @@ import { getCurrentUser } from "aws-amplify/auth";
 import { v4 as uuidv4 } from "uuid";
 import FollowButton from "./FollowButton";
 import ImageModal from "./ImageModal";
+import LikeButton from "./LikeButton";
+import Comments from "./Comments";
 import { useTheme } from "../context/ThemeContext";
 import { Icons } from "./Icons";
 
@@ -20,6 +22,7 @@ export default function UserProfile({ user, onBack, onMessage }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [coverUrl, setCoverUrl] = useState(null);
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
 
     // Load Current User
     useEffect(() => {
@@ -277,7 +280,33 @@ export default function UserProfile({ user, onBack, onMessage }) {
                 </div>
 
                 {/* Posts Grid */}
-                <h3 className="text-lg font-bold mt-6 mb-3" style={{ color: colors.text }}>Publicaciones</h3>
+                <div className="flex items-center justify-between mt-6 mb-3">
+                    <h3 className="text-lg font-bold" style={{ color: colors.text }}>Publicaciones</h3>
+                    <div className="flex space-x-1 p-1 rounded-lg" style={{ backgroundColor: colors.bgSecondary }}>
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className="p-1.5 rounded-md transition-all"
+                            style={{
+                                backgroundColor: viewMode === 'grid' ? colors.surface : 'transparent',
+                                color: viewMode === 'grid' ? colors.primary : colors.textSecondary,
+                                boxShadow: viewMode === 'grid' ? colors.shadow : 'none'
+                            }}
+                        >
+                            <Icons.Grid size={18} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className="p-1.5 rounded-md transition-all"
+                            style={{
+                                backgroundColor: viewMode === 'list' ? colors.surface : 'transparent',
+                                color: viewMode === 'list' ? colors.primary : colors.textSecondary,
+                                boxShadow: viewMode === 'list' ? colors.shadow : 'none'
+                            }}
+                        >
+                            <Icons.List size={18} />
+                        </button>
+                    </div>
+                </div>
 
                 {loading && <div className="text-center py-4" style={{ color: colors.textSecondary }}>Cargando...</div>}
 
@@ -287,25 +316,85 @@ export default function UserProfile({ user, onBack, onMessage }) {
                     </div>
                 )}
 
-                <div className="grid grid-cols-3 gap-1">
-                    {posts.map(p => (
-                        <div
-                            key={p.id}
-                            className="aspect-square relative overflow-hidden group cursor-pointer hover:opacity-90 transition"
-                            style={{ backgroundColor: colors.bgSecondary }}
-                            onClick={() => p.imageUrl && setSelectedImage(p.imageUrl)}
-                        >
-                            {p.imageUrl ? (
-                                <img src={p.imageUrl} alt="Post" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center p-2 text-xs text-center border"
-                                    style={{ color: colors.textTertiary, borderColor: colors.border }}>
-                                    {p.content}
+                {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-3 gap-1">
+                        {posts.map(p => (
+                            <div
+                                key={p.id}
+                                className="aspect-square relative overflow-hidden group cursor-pointer hover:opacity-90 transition"
+                                style={{ backgroundColor: colors.bgSecondary }}
+                                onClick={() => p.imageUrl && setSelectedImage(p.imageUrl)}
+                            >
+                                {p.imageUrl ? (
+                                    <img src={p.imageUrl} alt="Post" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center p-2 text-xs text-center border"
+                                        style={{ color: colors.textTertiary, borderColor: colors.border }}>
+                                        {p.content}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        {posts.map(p => (
+                            <div key={p.id} className="transition-all duration-200 rounded-xl border"
+                                style={{ borderColor: colors.border, backgroundColor: colors.surface }}
+                            >
+                                {/* Header */}
+                                <div className="px-4 pt-4 flex items-start space-x-3">
+                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-sm overflow-hidden"
+                                        style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
+                                        {avatarUrl ? (
+                                            <img src={avatarUrl} alt={user.username} className="w-full h-full object-cover" />
+                                        ) : (
+                                            user.username?.charAt(0).toUpperCase()
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center space-x-2">
+                                            <p className="font-bold text-sm" style={{ color: colors.text }}>{user.username}</p>
+                                            <span className="text-slate-400 text-xs">•</span>
+                                            <p className="text-xs" style={{ color: colors.textSecondary }}>
+                                                {new Date(p.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
+
+                                {/* Content */}
+                                <div className="px-4 py-3">
+                                    <p className="mb-3 text-base leading-relaxed whitespace-pre-wrap" style={{ color: colors.text }}>{p.content}</p>
+                                    {p.imageUrl && (
+                                        <div className="mt-3 rounded-2xl overflow-hidden shadow-sm border" style={{ borderColor: colors.border }}>
+                                            <img
+                                                src={p.imageUrl}
+                                                alt="post"
+                                                className="w-full object-cover max-h-[500px] cursor-pointer hover:scale-[1.01] transition-transform duration-300"
+                                                onClick={() => setSelectedImage(p.imageUrl)}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="px-4 pb-4">
+                                    <div className="flex items-center space-x-6 mb-3">
+                                        <LikeButton postID={p.id} />
+                                        <button className="flex items-center space-x-2 transition group" style={{ color: colors.textSecondary }}>
+                                            <div className="p-2 rounded-full group-hover:bg-violet-50 transition-colors">
+                                                <Icons.MessageCircle size={20} />
+                                            </div>
+                                            <span className="font-medium text-sm">Comentar</span>
+                                        </button>
+                                    </div>
+                                    <Comments postId={p.id} onUserClick={onMessage ? () => { } : undefined} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <ImageModal imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
