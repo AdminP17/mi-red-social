@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/api";
 import { listUserProfiles } from "../graphql/queries";
+import { getUrl } from "@aws-amplify/storage";
 import FollowButton from "./FollowButton";
 import { useTheme } from "../context/ThemeContext";
 
@@ -41,10 +42,23 @@ export default function SearchBar({ onSelectUser, currentUser }) {
 
       const items = res.data.listUserProfiles.items;
 
-      // Sort by createdAt desc
-      items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      // Resolve avatars
+      const itemsWithAvatars = await Promise.all(items.map(async (u) => {
+        if (u.avatar) {
+          try {
+            const urlResult = await getUrl({ key: u.avatar });
+            u.avatarUrl = urlResult.url.toString();
+          } catch (e) {
+            console.warn("Error resolving avatar:", e);
+          }
+        }
+        return u;
+      }));
 
-      setResults(items);
+      // Sort by createdAt desc
+      itemsWithAvatars.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setResults(itemsWithAvatars);
     } catch (err) {
       console.error("Error buscando usuarios:", JSON.stringify(err, null, 2));
     } finally {
@@ -100,8 +114,12 @@ export default function SearchBar({ onSelectUser, currentUser }) {
                   }}
                   className="flex items-center space-x-3 flex-grow text-left"
                 >
-                  <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
-                    {u.username.charAt(0).toUpperCase()}
+                  <div className="flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs overflow-hidden" style={{ backgroundColor: colors.primaryLight, color: colors.primary }}>
+                    {u.avatarUrl ? (
+                      <img src={u.avatarUrl} alt={u.username} className="w-full h-full object-cover" />
+                    ) : (
+                      u.username.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="text-sm font-medium" style={{ color: colors.text }}>@{u.username}</div>
                 </button>
